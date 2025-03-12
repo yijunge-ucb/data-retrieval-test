@@ -38,8 +38,6 @@ jobs:
             const linkPattern = /(gs:\/\/[^\s]+\.tar\.gz)/;
 
             const match = issueBody.match(linkPattern);
-
-            echo $match
             
             if (match && match[1]) {
               const folderLink = match[1];
