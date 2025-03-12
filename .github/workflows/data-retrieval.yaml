@@ -34,10 +34,12 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const issueBody = '${{ github.event.issue.body }}';
+            const issueBody = `${{ github.event.issue.body }}`;
             const linkPattern = /(gs:\/\/[^\s]+\.tar\.gz)/;
 
             const match = issueBody.match(linkPattern);
+
+            echo $match
             
             if (match && match[1]) {
               const folderLink = match[1];
