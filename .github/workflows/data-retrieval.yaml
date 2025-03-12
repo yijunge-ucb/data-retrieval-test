@@ -18,17 +18,15 @@ jobs:
           script: |
             const targetLabel = 'data retrieval';  // The label you are looking for
             const issueLabels = '${{ github.event.issue.labels }}'; // Issue labels from the event payload
+            const hasTargetLabel = issueLabels.some(label => label.name === targetLabel);
 
-            // Parse the issue labels to check for the target label
-            const labels = JSON.parse(issueLabels);
-            const hasLabel = labels.some(label => label.name === targetLabel);
-
-            if (!hasLabel) {
-              console.log(`No '${targetLabel}' label found. Exiting...`);
-              return;  // Stop the workflow if the label is not found
+            if (hasTargetLabel) {
+              console.log(`Found label "${targetLabel}". Proceeding...`);
+              return true;  // Proceed if the label is found
+            } else {
+              console.log(`Label "${targetLabel}" not found. Exiting...`);
+              return false;  // Stop the workflow if the label is not found
             }
-
-            console.log(`Label '${targetLabel}' found. Proceeding with the action...`);
 
       - name: Extract the "Link to Your Folder" from issue body
         id: extract_link
