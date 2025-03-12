@@ -20,8 +20,14 @@ jobs:
         with:
           script: |
             const targetLabel = 'data retrieval';  // The label you are looking for
-            const issueLabels = '${{ github.event.issue.labels }}'; // Issue labels from the event payload
-            const hasTargetLabel = issueLabels.some(label => label.name === targetLabel);
+            const issueNumber = ${{ github.event.issue.number }};
+            const { data: labels } = await github.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            });
+
+            const hasTargetLabel = labels.some(label => label.name === targetLabel);
 
             if (hasTargetLabel) {
               console.log(`Found label "${targetLabel}". Proceeding...`);
