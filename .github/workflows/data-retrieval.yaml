@@ -19,12 +19,13 @@ jobs:
         id: check_label
         run: |
           echo "Labels: ${{ toJson(github.event.issue.labels) }}"
-          
-          # Check if the label exists using contains()
-          if contains(github.event.issue.labels.*.name, 'data retrieval'); then
-            echo "Found label 'bug'. Proceeding..."
+    
+          if [[ "${{ contains(github.event.issue.labels.*.name, 'data retrieval') }}" == "true" ]]; then
+            echo "Label 'bug' found. Proceeding..."
+            echo "label_found=true" >> $GITHUB_ENV
           else
             echo "Label 'bug' not found. Exiting..."
+            echo "label_found=false" >> $GITHUB_ENV
             exit 1
           fi
 
