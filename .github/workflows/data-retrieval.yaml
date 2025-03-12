@@ -15,27 +15,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Check if the issue has the specific label
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const targetLabel = 'data retrieval';  // The label you are looking for
-            const issueNumber = ${{ github.event.issue.number }};
-            const { data: labels } = await github.issues.listLabelsOnIssue({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issueNumber
-            });
-
-            const hasTargetLabel = labels.some(label => label.name === targetLabel);
-
-            if (hasTargetLabel) {
-              console.log(`Found label "${targetLabel}". Proceeding...`);
-              return true;  // Proceed if the label is found
-            } else {
-              console.log(`Label "${targetLabel}" not found. Exiting...`);
-              return false;  // Stop the workflow if the label is not found
-            }
+      - name: Check if "data retrieval" label is present
+        id: check_label
+        run: |
+          echo "Labels: ${{ toJson(github.event.issue.labels) }}"
+          
+          # Check if the label exists using contains()
+          if contains(github.event.issue.labels.*.name, 'data retrieval'); then
+            echo "Found label 'bug'. Proceeding..."
+          else
+            echo "Label 'bug' not found. Exiting..."
+            exit 1
+          fi
 
       - name: Extract the "Link to Your Folder" from issue body
         id: extract_link
