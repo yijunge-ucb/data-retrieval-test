@@ -1,0 +1,55 @@
+name: Issue Created and Label Found
+
+on:
+  issues:
+    types: [opened]  # Trigger when an issue is opened
+
+jobs:
+  label_check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Check if the issue has the specific label
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const targetLabel = 'data retrieval';  // The label you are looking for
+            const issueLabels = '${{ github.event.issue.labels }}'; // Issue labels from the event payload
+
+            // Parse the issue labels to check for the target label
+            const labels = JSON.parse(issueLabels);
+            const hasLabel = labels.some(label => label.name === targetLabel);
+
+            if (!hasLabel) {
+              console.log(`No '${targetLabel}' label found. Exiting...`);
+              return;  // Stop the workflow if the label is not found
+            }
+
+            console.log(`Label '${targetLabel}' found. Proceeding with the action...`);
+
+      - name: Extract the "Link to Your Folder" from issue body
+        id: extract_link
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issueBody = '${{ github.event.issue.body }}';
+            const linkPattern = /id:\s*link.*\n\s*attributes:\s*label:\s*"Link to Your Folder".*\n\s*attributes:\s*description:\s*".*"\n\s*attributes:\s*value:\s*"(gs:\/\/[^\s]+\.tar\.gz)"/;
+
+            const match = issueBody.match(linkPattern);
+            
+            if (match && match[1]) {
+              const folderLink = match[1];
+              console.log(`Found link: ${folderLink}`);
+              return folderLink;  // Return the extracted link
+            } else {
+              throw new Error('Link not found in issue body');
+            }
+
+      - name: Use extracted link in next steps
+        run: |
+          echo "Extracted Link: ${{ steps.extract_link.outputs.result }}"
+          # Example of using the link in a next step (you can do whatever you need with the link)
+          
