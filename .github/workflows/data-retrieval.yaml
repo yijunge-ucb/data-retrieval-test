@@ -21,10 +21,10 @@ jobs:
           echo "Labels: ${{ toJson(github.event.issue.labels) }}"
     
           if [[ "${{ contains(github.event.issue.labels.*.name, 'data retrieval') }}" == "true" ]]; then
-            echo "Label 'bug' found. Proceeding..."
+            echo "Label 'data retrieval' found. Proceeding..."
             echo "label_found=true" >> $GITHUB_ENV
           else
-            echo "Label 'bug' not found. Exiting..."
+            echo "Label 'data retrieval' not found. Exiting..."
             echo "label_found=false" >> $GITHUB_ENV
             exit 1
           fi
@@ -35,7 +35,7 @@ jobs:
         with:
           script: |
             const issueBody = '${{ github.event.issue.body }}';
-            const linkPattern = /id:\s*link.*\n\s*attributes:\s*label:\s*"Link to Your Folder".*\n\s*attributes:\s*description:\s*".*"\n\s*attributes:\s*value:\s*"(gs:\/\/[^\s]+\.tar\.gz)"/;
+            const linkPattern = /(gs:\/\/[^\s]+\.tar\.gz)/;
 
             const match = issueBody.match(linkPattern);
             
