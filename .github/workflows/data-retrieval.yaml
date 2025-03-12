@@ -3,6 +3,9 @@ name: Issue Created and Label Found
 on:
   issues:
     types: [opened]  # Trigger when an issue is opened
+  issue_comment:
+    types: [created]  # Trigger when a new comment is created
+
 
 jobs:
   label_check:
