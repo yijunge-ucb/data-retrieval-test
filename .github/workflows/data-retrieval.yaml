@@ -40,21 +40,23 @@ jobs:
             const match = issueBody.match(linkPattern);
             
             if (match && match[1]) {
+              console.log('Link match result:', match);
               const folderLink = match[1];
               console.log(`Found link: ${folderLink}`);
               echo "::set-output name=folderlinkl::$folderlink"
             } else {
               throw new Error('Link not found in issue body');
             }
-            console.log('Link match result:', match);
+            
 
             const emailPattern = /### Your UC Berkeley Email Address\s*([\w._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/;
           
             const match = issueBody.match(emailPattern);
 
-            console.log('Email match result:', match);
+            
           
             if (match && match[1]) {
+              console.log('Email match result:', match);
               const email = match[1];
               console.log(`Found email: ${email}`);
               // Set the extracted email as an output
