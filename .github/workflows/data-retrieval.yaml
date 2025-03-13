@@ -47,7 +47,7 @@ jobs:
               throw new Error('Link not found in issue body');
             }
 
-            const emailPattern = /id:\s*email\s*[\s\S]*?attributes:\s*label:\s*"Your UC Berkeley Email Address"[\s\S]*?attributes:\s*value:\s*"([^"]+)"/;
+            const emailPattern = /### Your UC Berkeley Email Address\s*([\w._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/;
           
             const match = issueBody.match(emailPattern);
           
