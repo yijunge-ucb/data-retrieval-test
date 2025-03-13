@@ -10,7 +10,8 @@ body:
     attributes:
       value: |
         Please follow the sections in the template and provide us the information required to retrieve your files!
-  - type: textarea
+  - id: email
+    type: textarea
     attributes:
       label: Your UC Berkeley Email Address
       description: "Please enter your official UC Berkeley email address! eg: oski@berkeley.edu. Instructions on how to retrieve your files will be sent to this email address."

@@ -47,11 +47,19 @@ jobs:
               throw new Error('Link not found in issue body');
             }
 
-            email=$(echo "${{ github.event.issue.body }}" | grep -oP 'id: email.*?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})' | grep -oP '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}')
+            const emailPattern = /id:\s*email\s*[\s\S]*?attributes:\s*label:\s*"Your UC Berkeley Email Address"[\s\S]*?attributes:\s*value:\s*"([^"]+)"/;
+          
+            const match = issueBody.match(emailPattern);
+          
+            if (match && match[1]) {
+              const email = match[1];
+              console.log(`Found email: ${email}`);
+              // Set the extracted email as an output
+              echo "::set-output name=email::${email}";
+            } else {
+              throw new Error('Email not found in issue body');
+            }
         
-            echo "Extracted email: $email"
-            echo "::set-output name=email::$email"
-      
 
       - name: Set up Python environment
         uses: actions/setup-python@v2
