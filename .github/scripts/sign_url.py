@@ -33,8 +33,11 @@ def generate_signed_url(bucket_name, object_name):
             expiration=datetime.timedelta(days=7),  # Set the expiration time (e.g., 7 days)
             method='GET',  # Specify the HTTP method (e.g., GET for download)
         )
-
-        print(f'Signed URL: {url}')
+        
+        env_file = os.getenv('GITHUB_ENV')
+        with open(env_file, "a") as myfile:
+            myfile.write(f"signedURL={url}\n")
+        
 
     except DefaultCredentialsError as e:
         print(f"Error: Unable to authenticate with Google Cloud. {e}")

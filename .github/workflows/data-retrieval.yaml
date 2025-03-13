@@ -71,15 +71,20 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-pip
-          pip3 install --upgrade google-cloud-storage google-auth google-auth-oauthlib google-auth-httplib2
+          pip3 install --upgrade google-cloud-storage google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
 
-      - name: Set up Google Cloud credentials
+      - name: Sign URL
         env:
           EXTRACTED_LINK: ${{ steps.extract_link.outputs.folderlink }}
           GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.DATA_RETRIEVAL_SA }}
         run: |
-          echo "${{ secrets.DATA_RETRIEVAL_SA }}" > "${HOME}/gcp-service-account.json"
-          export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/gcp-service-account.json"
-          echo $GOOGLE_APPLICATION_CREDENTIALS
           python3 .github/scripts/sign_url.py
+
+      - name: Run the Python script to send email
+        run: |
+          python3 .github/scripts/send_email_oauth.py
+        env:
+          TOKEN_PICKLE: ${{ secrets.TOKEN_PICKLE }}
+          SIGNEDURL: ${{ env.signedURL}}
+          RECEIVER_EMAIL: ${{ steps.extract_link.outputs.email }}
           
