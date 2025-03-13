@@ -35,35 +35,31 @@ jobs:
         with:
           script: |
             const issueBody = `${{ github.event.issue.body }}`;
-            const linkPattern = /(gs:\/\/[^\s]+\.tar\.gz)/;
 
-            const match = issueBody.match(linkPattern);
-            
-            if (match && match[1]) {
-              console.log('Link match result:', match);
-              const folderLink = match[1];
+            // Define patterns for the link and email
+            const linkPattern = /(gs:\/\/[^\s]+\.tar\.gz)/;
+            const emailPattern = /###\s*Your UC Berkeley Email Address\s*([\w._%+-]+@berkeley\.edu)/;
+
+            // Extract folder link
+            const linkMatch = issueBody.match(linkPattern);
+            if (linkMatch && linkMatch[1]) {
+              const folderLink = linkMatch[1];
               console.log(`Found link: ${folderLink}`);
-              echo "::set-output name=folderlinkl::$folderlink"
+              core.setOutput("folderlink", folderLink);  // Set the folder link as output
             } else {
               throw new Error('Link not found in issue body');
             }
-            
 
-            const emailPattern = /### Your UC Berkeley Email Address\s*([\w._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/;
-          
-            const match = issueBody.match(emailPattern);
-
-            
-          
-            if (match && match[1]) {
-              console.log('Email match result:', match);
-              const email = match[1];
+            // Extract email
+            const emailMatch = issueBody.match(emailPattern);
+            if (emailMatch && emailMatch[1]) {
+              const email = emailMatch[1];
               console.log(`Found email: ${email}`);
-              // Set the extracted email as an output
-              echo "::set-output name=email::${email}";
+              core.setOutput("email", email);  // Set the email as output
             } else {
               throw new Error('Email not found in issue body');
             }
+
         
 
       - name: Set up Python environment
