@@ -46,10 +46,13 @@ jobs:
             } else {
               throw new Error('Link not found in issue body');
             }
+            console.log('Link match result:', match);
 
             const emailPattern = /### Your UC Berkeley Email Address\s*([\w._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/;
           
             const match = issueBody.match(emailPattern);
+
+            console.log('Email match result:', match);
           
             if (match && match[1]) {
               const email = match[1];
