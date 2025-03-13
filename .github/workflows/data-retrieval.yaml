@@ -74,13 +74,12 @@ jobs:
           pip3 install --upgrade google-cloud-storage google-auth google-auth-oauthlib google-auth-httplib2
 
       - name: Set up Google Cloud credentials
+        env:
+          EXTRACTED_LINK: ${{ steps.extract_link.outputs.folderlink }}
+          GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.DATA_RETRIEVAL_SA }}
         run: |
           echo "${{ secrets.DATA_RETRIEVAL_SA }}" > "${HOME}/gcp-service-account.json"
           export GOOGLE_APPLICATION_CREDENTIALS="${HOME}/gcp-service-account.json"
-
-      - name: Generate Signed URL for GCS Object
-        env:
-          EXTRACTED_LINK: ${{ steps.extract_link.outputs.folderlink }}
-        run: |
+          echo $GOOGLE_APPLICATION_CREDENTIALS
           python3 .github/scripts/sign_url.py
           
