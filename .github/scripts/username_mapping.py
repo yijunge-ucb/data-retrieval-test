@@ -200,7 +200,7 @@ def safe_slug(name, is_valid=is_valid_default, max_length=None):
 
 
 def email_matches_foldername(email, foldername):
-    foldername = foldername.split('.tar').lower()
+    foldername = foldername.split('.tar')[0].lower()
     username = email.split('@')[0].lower()
     if escape_slug(username) == foldername:
         return True
