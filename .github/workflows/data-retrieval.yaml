@@ -8,6 +8,8 @@ on:
 jobs:
   label_check:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write 
 
     steps:
       - name: Checkout repository
@@ -92,13 +94,12 @@ jobs:
               -H "Content-Type: application/json" \
               -d '{"state": "closed"}' \
               "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER"
-              
-            exit 1
           else
             echo "Environment variable is valid, continuing."
           fi
 
       - name: Install Google Cloud SDK and Python Client Libraries
+        if: ${{ env.emailMatchesFolder == 'valid' }}
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-pip
@@ -108,12 +109,13 @@ jobs:
         env:
           EXTRACTED_LINK: ${{ steps.extract_link.outputs.folderlink }}
           GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.DATA_RETRIEVAL_SA }}
-        if: steps.check_env_var.outcome == 'success'
+        if: ${{ env.emailMatchesFolder == 'valid' }}
         run: |
           python3 .github/scripts/sign_url.py
 
       - name: Run the Python script to send email
         id: run_send_email_python_script
+        if: ${{ env.emailMatchesFolder == 'valid' }}
         run: |
           python3 .github/scripts/send_email_oauth.py
         env:
