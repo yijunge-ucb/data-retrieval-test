@@ -30,5 +30,5 @@ if __name__ == "__main__":
     file_path = 'token.pickle'  # Path to your binary file
     encoded_string = encode_file_to_base64(file_path)
     print(encoded_string)
-    #save_base64_to_file(encoded_string, 'encoded_file.txt')
+    save_base64_to_file(encoded_string, 'encoded_file.txt')
     

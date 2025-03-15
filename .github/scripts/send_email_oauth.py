@@ -87,12 +87,13 @@ def send_email(service, sender, to, subject, body):
 if __name__ == '__main__':
     # Authenticate and build the Gmail API service
     service = authenticate_gmail_api()
+    issue_url = os.getenv('ISSUE_URL')
     
     if service:
         sender = 'yijunge@berkeley.edu'  # Replace with your email address
         recipient = os.getenv('RECEIVER_EMAIL')  # Replace with recipient's email
         subject = 'Your Request for Retrieving Old Files'
-        body = 'URL to the files you requested. ' + os.getenv('SIGNEDURL')
+        body = 'In response to your request {issue_url}, please find the URL to the files you requested. \n ' + os.getenv('SIGNEDURL')
         
 
         # Send the email

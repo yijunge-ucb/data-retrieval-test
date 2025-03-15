@@ -121,7 +121,8 @@ jobs:
         env:
           TOKEN_PICKLE: ${{ secrets.TOKEN_PICKLE }}
           SIGNEDURL: ${{ env.signedURL}}
-          RECEIVER_EMAIL: ${{ steps.extract_link.outputs.email }}
+          RECEIVER_EMAIL: ${{ steps.extract_link.outputs.email }}  
+          ISSUE_URL: "https://github.com/${{ github.repository }}/issues/${{ github.event.issue.number }}"
       
       - name: Post success comment and close the issue
         if: steps.run_send_email_python_script.outcome == 'success'
