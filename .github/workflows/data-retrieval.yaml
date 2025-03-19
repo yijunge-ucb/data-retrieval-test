@@ -86,7 +86,7 @@ jobs:
                           - Data8: [https://data8.datahub.berkeley.edu](https://data8.datahub.berkeley.edu)  
                           - R Hub: [https://r.datahub.berkeley.edu](https://r.datahub.berkeley.edu)  
                         2. **Find the \`WHERE-ARE-MY-FILES.txt\` file in your home directory.**  
-                        3. **Open the URL inside \`WHERE-ARE-MY-FILES.txt\` in your browser.**  
+                        3. **Paste the URL inside \`WHERE-ARE-MY-FILES.txt\` in your browser.**  
                           This will open a GitHub data retrieval request.  
                         4. **Fill in your Berkeley email address and submit the GitHub request.**`
               });
