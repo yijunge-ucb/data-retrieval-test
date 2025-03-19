@@ -176,14 +176,14 @@ jobs:
             # Post a comment on the issue
             COMMENT_BODY='The provided email does not match the folder name requested. Please double check your email and the path to the requested resource.'
             ISSUE_NUMBER=${{ github.event.issue.number }}
-            curl -X POST \
+            curl -s -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Content-Type: application/json" \
               -d "{\"body\": \"$COMMENT_BODY\"}" \
               "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments"
               
             # Close the issue
-            curl -X PATCH \
+            curl -s -X PATCH \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Content-Type: application/json" \
               -d '{"state": "closed"}' \
