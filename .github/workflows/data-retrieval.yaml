@@ -176,14 +176,14 @@ jobs:
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Content-Type: application/json" \
               -d "{\"body\": \"$COMMENT_BODY\"}" \
-              "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments"
+              "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments" > /dev/null 2>&1
               
             # Close the issue
             curl -s -X PATCH \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Content-Type: application/json" \
               -d '{"state": "closed"}' \
-              "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER"
+              "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER" > /dev/null 2>&1
           else
             echo "Environment variable is valid, continuing."
           fi
@@ -195,26 +195,17 @@ jobs:
           sudo apt-get install -y python3-pip
           pip3 install --upgrade google-cloud-storage google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
 
-      - name: Sign URL
+      - name: Sign URL and send emails
+        id: run_send_email_python_script
         env:
           EXTRACTED_LINK: ${{ needs.folder_and_email_extraction.outputs.folderlink}}
           GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.DATA_RETRIEVAL_SA }}
-        if: ${{ env.emailMatchesFolder == 'valid' }} 
-        run: |
-          python3 .github/scripts/sign_url.py
-
-      - name: Run the Python script to send email
-        id: run_send_email_python_script
-        if: ${{ env.emailMatchesFolder == 'valid' }}
-        run: |
-          echo "::add-mask::${{ env.signedURL }}"
-          python3 .github/scripts/send_email_oauth.py
-        env:
-          TOKEN_PICKLE: ${{ secrets.TOKEN_PICKLE }}
-          SIGNEDURL: ${{ env.signedURL}}
           RECEIVER_EMAIL: ${{ needs.folder_and_email_extraction.outputs.email }}
           ISSUE_URL: "https://github.com/${{ github.repository }}/issues/${{ github.event.issue.number }}"
-      
+        if: ${{ env.emailMatchesFolder == 'valid' }} 
+        run: |
+          python3 .github/scripts/sign_url_and_send_emails.py
+
       - name: Post success comment and close the issue
         if: steps.run_send_email_python_script.outcome == 'success' 
         run: |
@@ -225,13 +216,13 @@ jobs:
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "{\"body\": \"$COMMENT_BODY\"}" \
-            "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments"
+            "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments" > /dev/null 2>&1
           
           # Close the issue
           curl -s -X PATCH \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d '{"state": "closed"}' \
-            "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER"
+            "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER" > /dev/null 2>&1
 
           
