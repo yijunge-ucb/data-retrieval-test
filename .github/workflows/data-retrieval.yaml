@@ -59,7 +59,7 @@ jobs:
               
               // Define patterns for the link and email
               const linkPattern = /gs:\/\/[^\s]+\.tar\.gz/g;  // Ensure global flag `g`
-              const emailPattern = /###\s*Your UC Berkeley Email Address\s*([\w._%+-]+@berkeley\.edu)/;
+              const emailPattern = /([a-zA-Z0-9._%+-]+@berkeley\.edu)(?=\b|\))/;
               
               // Extract all matching folder links
               let folderLinks = [];
