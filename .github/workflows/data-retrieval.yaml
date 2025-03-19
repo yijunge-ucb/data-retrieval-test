@@ -2,7 +2,9 @@ name: Issue Created and Label Found
 
 on:
   issues:
-    types: [opened]  # Trigger when an issue is opened
+    types: 
+      - opened  # Trigger when an issue is opened
+      - reopened
   
 
 jobs:
