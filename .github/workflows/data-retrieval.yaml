@@ -32,7 +32,7 @@ jobs:
             echo "label_found=false" >> $GITHUB_OUTPUT
           fi
 
-  folder_and_email_extration:
+  folder_and_email_extraction:
     needs: label_check
     if: needs.label_check.outputs.label_found == 'true'  # Run only if label is found
     runs-on: ubuntu-latest
