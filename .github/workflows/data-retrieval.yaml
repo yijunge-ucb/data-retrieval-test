@@ -166,7 +166,7 @@ jobs:
         id: check_env_var
         run: |
           if [ "${{ env.emailMatchesFolder }}" == "invalid" ]; then
-            echo "The provided email does not match the folder name requested. Please double check your email and the path to the requested resource."
+            echo "Some of the links to the requested resources do not match the owner of the provided email. Please double-check your email and verify the paths to the requested resources."
             
             # Post a comment on the issue
             COMMENT_BODY='The provided email does not match the folder name requested. Please double check your email and the path to the requested resource.'
