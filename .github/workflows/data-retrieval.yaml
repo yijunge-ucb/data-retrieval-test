@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       issues: write 
+    outputs:
+      label_found: ${{ steps.check_label.outputs.label_found }}
 
     steps:
       - name: Checkout repository
@@ -23,18 +25,39 @@ jobs:
           if [[ "${{ contains(github.event.issue.labels.*.name, 'data retrieval') }}" == "true" ]]; then
             echo "Label 'data retrieval' found. Proceeding..."
             echo "label_found=true" >> $GITHUB_ENV
+            echo "label_found=true" >> $GITHUB_OUTPUT
           else
             echo "Label 'data retrieval' not found. Exiting..."
             echo "label_found=false" >> $GITHUB_ENV
-            exit 1
+            echo "label_found=false" >> $GITHUB_OUTPUT
           fi
 
+  folder_and_email_extration:
+    needs: label_check
+    if: needs.label_check.outputs.label_found == 'true'  # Run only if label is found
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write 
+    outputs:
+      folder_found: ${{ steps.extract_link.outputs.folder_found }}
+      email_found: ${{ steps.extract_link.outputs.email_found }}
+      folderlink: ${{ steps.extract_link.outputs.folderlink}}
+      email: ${{ steps.extract_link.outputs.email }}
+
+    steps:
       - name: Extract the "Link to Your Folder" from issue body
         id: extract_link
         uses: actions/github-script@v6
         with:
           script: |
+            const issueNumber = context.issue.number;
             const issueBody = `${{ github.event.issue.body }}`;
+            const repo = context.repo;
+            
+
+            let folderlink = "";
+            let email = "";
+            
 
             // Define patterns for the link and email
             const linkPattern = /(gs:\/\/[^\s]+\.tar\.gz)/;
@@ -46,8 +69,26 @@ jobs:
               const folderLink = linkMatch[1];
               console.log(`Found link: ${folderLink}`);
               core.setOutput("folderlink", folderLink);  // Set the folder link as output
+              core.setOutput("folder_found", "true");  // Indicate folder is found
             } else {
-              throw new Error('Link not found in issue body');
+              console.log("No valid folder link found. Leaving a comment and closing the issue.");
+              core.setOutput("folder_found", "false");  // Indicate folder is NOT found
+
+              // Leave a comment on the issue
+              await github.rest.issues.createComment({
+                owner: repo.owner,
+                repo: repo.repo,
+                issue_number: issueNumber,
+                body: "Please resubmit the request with a valid link to the resource you requested. The link can be found in the WHERE-ARE-MY-FILES.txt in your home directory when you log into JupyterHub."
+              });
+
+              // Close the issue
+              await github.rest.issues.update({
+                owner: repo.owner,
+                repo: repo.repo,
+                issue_number: issueNumber,
+                state: "closed"
+              });
             }
 
             // Extract email
@@ -55,12 +96,39 @@ jobs:
             if (emailMatch && emailMatch[1]) {
               const email = emailMatch[1];
               console.log(`Found email: ${email}`);
+              core.setOutput("email_found", "true");
               core.setOutput("email", email);  // Set the email as output
             } else {
-              throw new Error('Email not found in issue body');
+              console.log("No valid email found. Leaving a comment and closing the issue.");
+              core.setOutput("email_found", "false"); 
+
+              // Leave a comment on the issue
+              await github.rest.issues.createComment({
+                owner: repo.owner,
+                repo: repo.repo,
+                issue_number: issueNumber,
+                body: "Please provide your berkeley.edu email and resubmit your request."
+              });
+
+              // Close the issue
+              await github.rest.issues.update({
+                owner: repo.owner,
+                repo: repo.repo,
+                issue_number: issueNumber,
+                state: "closed"
+              });
+
+              return;  // Stop execution without failing the workflow
             }
 
+  process_requests:
+    needs: folder_and_email_extraction
+    if: needs.folder_and_email_extraction.outputs.folder_found == 'true' && needs.folder_and_email_extraction.outputs.email_found == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write 
 
+    steps:
       - name: Set up Python environment
         uses: actions/setup-python@v2
         with:
@@ -68,8 +136,8 @@ jobs:
 
       - name: Check whether email matches the folder name
         env:
-          EXTRACTED_LINK: ${{ steps.extract_link.outputs.folderlink }}
-          RECEIVER_EMAIL: ${{ steps.extract_link.outputs.email }}
+          EXTRACTED_LINK: ${{ needs.folder_and_email_extraction.outputs.folderlink}}
+          RECEIVER_EMAIL: ${{ needs.folder_and_email_extraction.outputs.email }}
         run: |
           python3 .github/scripts/username_mapping.py
       
@@ -99,7 +167,7 @@ jobs:
           fi
 
       - name: Install Google Cloud SDK and Python Client Libraries
-        if: ${{ env.emailMatchesFolder == 'valid' }}
+        if: ${{ env.emailMatchesFolder == 'valid' }} 
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-pip
@@ -109,7 +177,7 @@ jobs:
         env:
           EXTRACTED_LINK: ${{ steps.extract_link.outputs.folderlink }}
           GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.DATA_RETRIEVAL_SA }}
-        if: ${{ env.emailMatchesFolder == 'valid' }}
+        if: ${{ env.emailMatchesFolder == 'valid' }} 
         run: |
           python3 .github/scripts/sign_url.py
 
@@ -125,7 +193,7 @@ jobs:
           ISSUE_URL: "https://github.com/${{ github.repository }}/issues/${{ github.event.issue.number }}"
       
       - name: Post success comment and close the issue
-        if: steps.run_send_email_python_script.outcome == 'success'
+        if: steps.run_send_email_python_script.outcome == 'success' 
         run: |
           # Post a success comment on the issue
           COMMENT_BODY='The requested resource has been sent to your provided email address. You have 7 days from when the email was received to retrieve your data.'
