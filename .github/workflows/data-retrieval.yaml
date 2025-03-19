@@ -16,9 +16,6 @@ jobs:
       label_found: ${{ steps.check_label.outputs.label_found }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
       - name: Check if "data retrieval" label is present
         id: check_label
         run: |
@@ -131,6 +128,8 @@ jobs:
       issues: write 
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
       - name: Set up Python environment
         uses: actions/setup-python@v2
         with:
