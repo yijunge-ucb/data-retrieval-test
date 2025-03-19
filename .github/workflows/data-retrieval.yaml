@@ -207,6 +207,7 @@ jobs:
         id: run_send_email_python_script
         if: ${{ env.emailMatchesFolder == 'valid' }}
         run: |
+          echo "::add-mask::${{ env.signedURL }}"
           python3 .github/scripts/send_email_oauth.py
         env:
           TOKEN_PICKLE: ${{ secrets.TOKEN_PICKLE }}
