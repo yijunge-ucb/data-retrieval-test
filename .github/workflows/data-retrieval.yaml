@@ -61,17 +61,21 @@ jobs:
             // Define patterns for the link and email
             const linkPattern = /(gs:\/\/[^\s]+\.tar\.gz)/;
             const emailPattern = /###\s*Your UC Berkeley Email Address\s*([\w._%+-]+@berkeley\.edu)/;
+            
+            // Extract all matching folder links
+            const linkMatches = [...issueBody.matchAll(linkPattern)]; // Get all matches
+            const folderLinks = linkMatches.map(match => match[1]);   // Extract links
 
-            // Extract folder link
-            const linkMatch = issueBody.match(linkPattern);
-            if (linkMatch && linkMatch[1]) {
-              const folderLink = linkMatch[1];
-              console.log(`Found link: ${folderLink}`);
-              core.setOutput("folderlink", folderLink);  // Set the folder link as output
-              core.setOutput("folder_found", "true");  // Indicate folder is found
+            if (folderLinks.length > 0) {
+              console.log(`Found links: ${folderLinks.join(", ")}`);
+              
+              // Store all links as a comma-separated string
+              core.setOutput("folderlink", folderLinks.join(","));  
+              core.setOutput("folder_found", "true");  
             } else {
               console.log("No valid folder link found. Leaving a comment and closing the issue.");
-              core.setOutput("folder_found", "false");  // Indicate folder is NOT found
+              core.setOutput("folder_found", "false");  
+            }
 
               // Leave a comment on the issue
               await github.rest.issues.createComment({
@@ -186,7 +190,7 @@ jobs:
 
       - name: Sign URL
         env:
-          EXTRACTED_LINK: ${{ steps.extract_link.outputs.folderlink }}
+          EXTRACTED_LINK: ${{ needs.folder_and_email_extraction.outputs.folderlink}}
           GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.DATA_RETRIEVAL_SA }}
         if: ${{ env.emailMatchesFolder == 'valid' }} 
         run: |
@@ -200,7 +204,7 @@ jobs:
         env:
           TOKEN_PICKLE: ${{ secrets.TOKEN_PICKLE }}
           SIGNEDURL: ${{ env.signedURL}}
-          RECEIVER_EMAIL: ${{ steps.extract_link.outputs.email }}  
+          RECEIVER_EMAIL: ${{ needs.folder_and_email_extraction.outputs.email }}
           ISSUE_URL: "https://github.com/${{ github.repository }}/issues/${{ github.event.issue.number }}"
       
       - name: Post success comment and close the issue
