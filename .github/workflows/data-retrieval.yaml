@@ -200,6 +200,7 @@ jobs:
         env:
           EXTRACTED_LINK: ${{ needs.folder_and_email_extraction.outputs.folderlink}}
           GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.DATA_RETRIEVAL_SA }}
+          TOKEN_PICKLE: ${{ secrets.TOKEN_PICKLE }}
           RECEIVER_EMAIL: ${{ needs.folder_and_email_extraction.outputs.email }}
           ISSUE_URL: "https://github.com/${{ github.repository }}/issues/${{ github.event.issue.number }}"
         if: ${{ env.emailMatchesFolder == 'valid' }} 
