@@ -34,11 +34,7 @@ def generate_signed_url(bucket_name, object_name):
             method='GET',  # Specify the HTTP method (e.g., GET for download)
         )
         
-        env_file = os.getenv('GITHUB_ENV')
-        existing_urls = os.getenv("signedURL", "")
-        updated_urls = f"{existing_urls},{url}" if existing_urls else url
-        with open(env_file, "a") as myfile:
-            myfile.write(f"signedURL={updated_urls}")
+        return url
         
 
     except DefaultCredentialsError as e:
@@ -52,10 +48,16 @@ def generate_signed_url(bucket_name, object_name):
 
 extracted_link = os.getenv('EXTRACTED_LINK')
 all_links = extracted_link.split(',')
+results = ""
 for link in all_links:
     # Your bucket and object details
     bucket_name = link.split('//')[1].split('/')[0]
     object_name = '/'.join(link.split('//')[1].split('/')[1:])
 
     # Generate signed URL
-    generate_signed_url(bucket_name, object_name)
+    url = generate_signed_url(bucket_name, object_name)
+    results += url
+
+env_file = os.getenv('GITHUB_ENV')
+with open(env_file, "a") as myfile:
+    myfile.write(f"signedURL={results}")
