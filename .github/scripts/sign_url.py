@@ -38,7 +38,7 @@ def generate_signed_url(bucket_name, object_name):
         existing_urls = os.getenv("signedURL", "")
         updated_urls = f"{existing_urls},{url}" if existing_urls else url
         with open(env_file, "a") as myfile:
-            myfile.write(f"signedURL={updated_urls}\n")
+            myfile.write(f"signedURL={updated_urls}")
         
 
     except DefaultCredentialsError as e:

@@ -220,14 +220,14 @@ jobs:
           # Post a success comment on the issue
           COMMENT_BODY='The requested resource has been sent to your provided email address. You have 7 days from when the email was received to retrieve your data. If you do not see the email, check for your spam box and look for an email sent from datahub-dataretrieval@berkeley.edu.'
           ISSUE_NUMBER=${{ github.event.issue.number }}
-          curl -X POST \
+          curl -s -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "{\"body\": \"$COMMENT_BODY\"}" \
             "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments"
           
           # Close the issue
-          curl -X PATCH \
+          curl -s -X PATCH \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d '{"state": "closed"}' \

@@ -97,11 +97,9 @@ if __name__ == '__main__':
 
         # Format the message
         body = f"\n In response to your request [{issue_url}], please find the URL(s) to the files you requested:\n\n"
-        url_list = signed_urls.strip().split(",")  # Split URLs by comma
+        url_list = signed_urls.split(",")  # Split URLs by comma
         for url in url_list:
-            body += f"{url} \n"
-        body = f'In response to your request {issue_url}, please find the URL to the files you requested. \n ' + os.getenv('SIGNEDURL')
-        
+            body += f"{url}\n\n"
 
         # Send the email
         send_email(service, sender, recipient, subject, body)
