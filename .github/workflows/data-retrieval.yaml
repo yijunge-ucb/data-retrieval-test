@@ -84,20 +84,15 @@ jobs:
                   repo: repo.repo,
                   issue_number: issueNumber,
                   body: `**Invalid folder link detected.**
-                  
                         Please resubmit the request with a valid link to the resource you requested. The link can be found in the \`WHERE-ARE-MY-FILES.txt\` file in your home directory when you log into JupyterHub.
-
                         ### Steps to find your link:
                         1. **Identify your hub and log in.**  
                           - DataHub: [https://datahub.berkeley.edu](https://datahub.berkeley.edu)  
                           - Data8: [https://data8.datahub.berkeley.edu](https://data8.datahub.berkeley.edu)  
                           - R Hub: [https://r.datahub.berkeley.edu](https://r.datahub.berkeley.edu)  
-
                         2. **Find the \`WHERE-ARE-MY-FILES.txt\` file in your home directory.**  
-
                         3. **Copy and paste the URL inside \`WHERE-ARE-MY-FILES.txt\` into your browser.**  
                           This will open a GitHub data retrieval request.  
-
                         4. **Fill in your Berkeley email address and submit the GitHub request.**`
                 });
 
