@@ -48,7 +48,7 @@ def generate_signed_url(bucket_name, object_name):
 
 extracted_link = os.getenv('EXTRACTED_LINK')
 all_links = extracted_link.split(',')
-results = ""
+results = []
 for link in all_links:
     # Your bucket and object details
     bucket_name = link.split('//')[1].split('/')[0]
@@ -56,8 +56,10 @@ for link in all_links:
 
     # Generate signed URL
     url = generate_signed_url(bucket_name, object_name)
-    results += url
+    results.append(url)
+
+all_signed_urls = ','.join(results)
 
 env_file = os.getenv('GITHUB_ENV')
 with open(env_file, "a") as myfile:
-    myfile.write(f"signedURL={results}")
+    myfile.write(f"signedURL={all_signed_urls}")
