@@ -216,12 +216,15 @@ def email_matches_foldername(email, foldername):
 def main():
     email = os.getenv('RECEIVER_EMAIL')
     extracted_link = os.getenv('EXTRACTED_LINK')
-    foldername = extracted_link.split('/')[-1]
+    all_links = extracted_link.split(',')
+    valid_mapping = "valid"
+    for link in all_links:
+        foldername = link.split('/')[-1]
+        if not email_matches_foldername(email, foldername):
+            valid_mapping = "invalid"
+            break
+
     env_file = os.getenv('GITHUB_ENV')
-    valid_mapping = "invalid"
-    if email_matches_foldername(email, foldername):
-        valid_mapping = "valid"
-    
     with open(env_file, "a") as myfile:
         myfile.write(f"emailMatchesFolder={valid_mapping}\n")
     

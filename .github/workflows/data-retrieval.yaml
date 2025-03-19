@@ -93,7 +93,8 @@ jobs:
                         2. **Find the \`WHERE-ARE-MY-FILES.txt\` file in your home directory.**  
                         3. **Copy and paste the URL inside \`WHERE-ARE-MY-FILES.txt\` into your browser.**  
                             This will open a GitHub data retrieval request.  
-                        4. **Fill in your Berkeley email address and submit the GitHub issue.**`
+                        4. **Fill in your Berkeley email address and submit the GitHub issue.**
+                        If you no longer have access to the hub where WHERE-ARE-MY-FILES.txt is stored or if you lost access to bcourse, please contact datahub-dataretrieval@berkeley.edu.`
                 });
 
                 // Close the issue
@@ -169,7 +170,7 @@ jobs:
             echo "Some of the links to the requested resources do not match the owner of the provided email. Please double-check your email and verify the paths to the requested resources."
             
             # Post a comment on the issue
-            COMMENT_BODY='The provided email does not match the folder name requested. Please double check your email and the path to the requested resource.'
+            COMMENT_BODY='Some of the links to the requested resources do not match the owner of the provided email. Please double-check your email and verify the paths to the requested resources.'
             ISSUE_NUMBER=${{ github.event.issue.number }}
             curl -s -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
@@ -217,7 +218,7 @@ jobs:
         if: steps.run_send_email_python_script.outcome == 'success' 
         run: |
           # Post a success comment on the issue
-          COMMENT_BODY='The requested resource has been sent to your provided email address. You have 7 days from when the email was received to retrieve your data.'
+          COMMENT_BODY='The requested resource has been sent to your provided email address. You have 7 days from when the email was received to retrieve your data. If you do not see the email, check for your spam box and look for an email sent from datahub-dataretrieval@berkeley.edu.'
           ISSUE_NUMBER=${{ github.event.issue.number }}
           curl -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \

@@ -90,10 +90,17 @@ if __name__ == '__main__':
     issue_url = os.getenv('ISSUE_URL')
     
     if service:
-        sender = 'yijunge@berkeley.edu'  # Replace with your email address
+        sender = 'datahub-dataretrieval@berkeley.edu'  # Replace with your email address
         recipient = os.getenv('RECEIVER_EMAIL')  # Replace with recipient's email
         subject = 'Your Request for Retrieving Old Files'
-        body = 'In response to your request {issue_url}, please find the URL to the files you requested. \n ' + os.getenv('SIGNEDURL')
+        signed_urls = os.getenv("SIGNEDURL", "").strip()
+
+        # Format the message
+        body = f"\n In response to your request [{issue_url}], please find the URL(s) to the files you requested:\n\n"
+        url_list = signed_urls.strip().split(",")  # Split URLs by comma
+        for url in url_list:
+            body += f"{url} \n"
+        body = f'In response to your request {issue_url}, please find the URL to the files you requested. \n ' + os.getenv('SIGNEDURL')
         
 
         # Send the email
