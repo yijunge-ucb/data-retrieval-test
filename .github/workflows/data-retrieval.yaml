@@ -46,93 +46,104 @@ jobs:
     steps:
       - name: Extract the "Link to Your Folder" from issue body
         id: extract_link
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const issueNumber = context.issue.number;
             const issueBody = `${{ github.event.issue.body }}`;
             const repo = context.repo;
             
-
-            let folderlink = "";
-            let email = "";
-            
-
-            // Define patterns for the link and email
-            const linkPattern = /(gs:\/\/[^\s]+\.tar\.gz)/;
-            const emailPattern = /###\s*Your UC Berkeley Email Address\s*([\w._%+-]+@berkeley\.edu)/;
-            
-            // Extract all matching folder links
-            const linkMatches = [...issueBody.matchAll(linkPattern)]; // Get all matches
-            const folderLinks = linkMatches.map(match => match[1]);   // Extract links
-
-            if (folderLinks.length > 0) {
-              console.log(`Found links: ${folderLinks.join(", ")}`);
+            async function run() {
+              let folderlink = "";
+              let email = "";
               
-              // Store all links as a comma-separated string
-              core.setOutput("folderlink", folderLinks.join(","));  
-              core.setOutput("folder_found", "true");  
-            } else {
-              console.log("No valid folder link found. Leaving a comment and closing the issue.");
-              core.setOutput("folder_found", "false");  
-            }
+              // Define patterns for the link and email
+              const linkPattern = /gs:\/\/[^\s]+\.tar\.gz/g;  // Ensure global flag `g`
+              const emailPattern = /###\s*Your UC Berkeley Email Address\s*([\w._%+-]+@berkeley\.edu)/;
+              
+              // Extract all matching folder links
+              let folderLinks = [];
+              let match;
+              while ((match = linkPattern.exec(issueBody)) !== null) {
+                folderLinks.push(match[0]); // Extract full link
+              }
 
-              // Leave a comment on the issue
-              await github.rest.issues.createComment({
-                owner: repo.owner,
-                repo: repo.repo,
-                issue_number: issueNumber,
-                body: `Please resubmit the request with a valid link to the resource you requested. The link can be found in the WHERE-ARE-MY-FILES.txt in your home directory when you log into JupyterHub.
-                      **Steps to find your link:**
-                        1. **Identify your hub and log in.** 
-                          For example, 
+              if (folderLinks.length > 0) {
+                console.log(`Found links: ${folderLinks.join(", ")}`);
+                
+                // Store all links as a comma-separated string
+                core.setOutput("folderlink", folderLinks.join(","));  
+                core.setOutput("folder_found", "true");  
+              } else {
+                console.log("No valid folder link found. Leaving a comment and closing the issue.");
+                core.setOutput("folder_found", "false");  
+
+                // Leave a comment on the issue
+                await github.rest.issues.createComment({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: issueNumber,
+                  body: `**Invalid folder link detected.**
+                  
+                        Please resubmit the request with a valid link to the resource you requested. The link can be found in the \`WHERE-ARE-MY-FILES.txt\` file in your home directory when you log into JupyterHub.
+
+                        ### Steps to find your link:
+                        1. **Identify your hub and log in.**  
                           - DataHub: [https://datahub.berkeley.edu](https://datahub.berkeley.edu)  
                           - Data8: [https://data8.datahub.berkeley.edu](https://data8.datahub.berkeley.edu)  
                           - R Hub: [https://r.datahub.berkeley.edu](https://r.datahub.berkeley.edu)  
+
                         2. **Find the \`WHERE-ARE-MY-FILES.txt\` file in your home directory.**  
-                        3. **Paste the URL inside \`WHERE-ARE-MY-FILES.txt\` in your browser.**  
+
+                        3. **Copy and paste the URL inside \`WHERE-ARE-MY-FILES.txt\` into your browser.**  
                           This will open a GitHub data retrieval request.  
+
                         4. **Fill in your Berkeley email address and submit the GitHub request.**`
-              });
+                });
 
-              // Close the issue
-              await github.rest.issues.update({
-                owner: repo.owner,
-                repo: repo.repo,
-                issue_number: issueNumber,
-                state: "closed"
-              });
+                // Close the issue
+                await github.rest.issues.update({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: issueNumber,
+                  state: "closed"
+                });
+
+                return; // Exit early since there's no valid folder link
+              }
+
+              // Extract email
+              const emailMatch = issueBody.match(emailPattern);
+              if (emailMatch && emailMatch[1]) {
+                email = emailMatch[1].trim();
+                console.log(`Found email: ${email}`);
+                core.setOutput("email", email);
+                core.setOutput("email_found", "true");
+              } else {
+                console.log("No valid email found. Leaving a comment and closing the issue.");
+                core.setOutput("email_found", "false");
+
+                // Leave a comment for missing email
+                await github.rest.issues.createComment({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: issueNumber,
+                  body: "**Missing Email Address.**\n\nPlease provide your UC Berkeley email address and resubmit your request."
+                });
+
+                // Close the issue
+                await github.rest.issues.update({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: issueNumber,
+                  state: "closed"
+                });
+
+                return; // Exit early since there's no valid email
+              }
             }
 
-            // Extract email
-            const emailMatch = issueBody.match(emailPattern);
-            if (emailMatch && emailMatch[1]) {
-              const email = emailMatch[1];
-              console.log(`Found email: ${email}`);
-              core.setOutput("email_found", "true");
-              core.setOutput("email", email);  // Set the email as output
-            } else {
-              console.log("No valid email found. Leaving a comment and closing the issue.");
-              core.setOutput("email_found", "false"); 
-
-              // Leave a comment on the issue
-              await github.rest.issues.createComment({
-                owner: repo.owner,
-                repo: repo.repo,
-                issue_number: issueNumber,
-                body: "Please provide your berkeley.edu email and resubmit your request."
-              });
-
-              // Close the issue
-              await github.rest.issues.update({
-                owner: repo.owner,
-                repo: repo.repo,
-                issue_number: issueNumber,
-                state: "closed"
-              });
-
-              return;  // Stop execution without failing the workflow
-            }
+            run().catch(error => console.error("Error:", error));
 
   process_requests:
     needs: folder_and_email_extraction
