@@ -211,11 +211,10 @@ jobs:
         if: steps.run_send_email_python_script.outcome == 'success' 
         run: |
           # Post a success comment on the issue
-          COMMENT_BODY='The requested resource has been sent to your provided email address. You have 7 days from when the email was received to retrieve your data. If you do not see the email, check for your spam box and look for an email sent from datahub-dataretrieval@berkeley.edu. \n What is a .tar file?
-                        A .tar file is a type of compressed file that holds many other files inside it, kind of like a folder zipped into one file. To access the files inside, you need to "untar" (or extract) them. \n
+          COMMENT_BODY='The requested resource has been sent to your provided email address. You have 7 days from when the email was received to retrieve your data. If you do not see the email, check for your spam box and look for an email sent from datahub-dataretrieval@berkeley.edu. \n 
                         Steps to Untar a .tar File: \n
                         Download the .tar File: When you click on the shared link, you will be downloading .tar file to your device. It could look something like your-calnet-id.tar. \n
-                        Open the Terminal (Command Line): You need to either use the  "Terminal" (on Mac/Linux) or "Command Prompt" (on Windows) to untar the file. \n
+                        Open the Terminal (Command Line): You need to either use the  Terminal (on Mac/Linux) or Command Prompt (on Windows) to untar the file. \n
                         On Windows: If you don’t have a program like 7-Zip, you can install it first.
                         On Mac/Linux: The Terminal is already there, so you can just open it from your Applications folder (Mac) or search for it in your app list (Linux).\n
                         Navigate to the Folder with the .tar File: Locate the .tar file is. In Terminal or Command Prompt, use the cd command to navigate there.\n
@@ -223,7 +222,7 @@ jobs:
                         On Mac/Linux: Type this command in the Terminal: \n
                         tar -xvf your-calnet-id.tar \n
                         On Windows: If you are using 7-Zip, right-click the .tar file, then choose 7-Zip > Extract Here. This will extract the files in the same location. \n
-                        Find Your Extracted Files: After the command runs (or you extract with 7-Zip), you should see a new folder (or a bunch of new files) appear. These are your files from DataHub that were inside the .tar archive.' \n
+                        Find Your Extracted Files: After the command runs (or you extract with 7-Zip), you should see a new folder (or a bunch of new files) appear. These are your files from DataHub that were inside the .tar archive. \n' 
           ISSUE_NUMBER=${{ github.event.issue.number }}
           curl -s -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
