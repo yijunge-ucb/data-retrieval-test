@@ -183,10 +183,10 @@ jobs:
         id: check_env_var
         run: |
           if [ "${{ env.emailMatchesFolder }}" == "invalid" ]; then
-            echo "Some of the links to the requested resources do not match the owner of the provided email. Please double check your email and the paths to the requested resources, and submit a new issue Github with correct information."
+            echo "Some of the links to the requested resources do not match the owner of the provided email. Please double check your email and the paths to the requested resources, and submit a new Github issue with correct information."
             
             # Post a comment on the issue
-            COMMENT_BODY='Some of the links to the requested resources do not match the owner of the provided email. Please double check your email and the paths to the requested resources, and submit a new issue Github with correct information.'
+            COMMENT_BODY='Some of the links to the requested resources do not match the owner of the provided email. Please double check your email and the paths to the requested resources, and submit a new Github issue with correct information.'
             ISSUE_NUMBER=${{ github.event.issue.number }}
             curl -s -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
