@@ -81,14 +81,29 @@ def create_message(sender, to, subject, body):
     raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
     return {'raw': raw_message}
 
+
 def send_email(service, sender, to, subject, body):
-    """Send an email message."""
+    """Send an email message using the Gmail API."""
     try:
-        message = create_message(sender, to, subject, body)
-        message = service.users().messages().send(userId='me', body=message).execute()
-        print(f'Message sent!')
+        # Create the MIME message
+        message = MIMEMultipart()
+        message['to'] = to
+        message['from'] = sender
+        message['subject'] = subject
+        
+        # Attach the HTML body as MIMEText (HTML content type)
+        msg = MIMEText(body, 'html')  # Specify the MIME type as 'html'
+        message.attach(msg)
+        
+        # Encode the message as base64 URL-safe format
+        raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+
+        # Send the message using the Gmail API
+        sent_message = service.users().messages().send(userId="me", body={'raw': raw_message}).execute()
+        print(f"Message sent! Message ID: {sent_message['id']}")
     except HttpError as error:
-        print(f'An error occurred: {error}')
+        print(f"An error occurred: {error}")
+
 
 def generate_signed_url(bucket_name, object_name):
     try:
