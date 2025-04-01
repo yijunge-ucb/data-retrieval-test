@@ -97,6 +97,14 @@ jobs:
                         If you no longer have access to the hub where WHERE-ARE-MY-FILES.txt is stored or if you lost access to bcourse, please contact datahub-dataretrieval@berkeley.edu.`
                 });
 
+                // Add the "failed data retrieval" label
+                await github.rest.issues.addLabels({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: issueNumber,
+                  labels: ['failed data retrieval']
+                });
+
                 // Close the issue
                 await github.rest.issues.update({
                   owner: repo.owner,
@@ -125,6 +133,14 @@ jobs:
                   repo: repo.repo,
                   issue_number: issueNumber,
                   body: "**Missing Email Address.**\n\nPlease provide your UC Berkeley email address and resubmit your request."
+                });
+
+                // Add the "failed data retrieval" label
+                await github.rest.issues.addLabels({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  issue_number: issueNumber,
+                  labels: ['failed data retrieval']
                 });
 
                 // Close the issue
@@ -167,16 +183,23 @@ jobs:
         id: check_env_var
         run: |
           if [ "${{ env.emailMatchesFolder }}" == "invalid" ]; then
-            echo "Some of the links to the requested resources do not match the owner of the provided email. Please double-check your email and verify the paths to the requested resources."
+            echo "Some of the links to the requested resources do not match the owner of the provided email. Please double check your email and the paths to the requested resources, and submit a new issue Github with correct information."
             
             # Post a comment on the issue
-            COMMENT_BODY='Some of the links to the requested resources do not match the owner of the provided email. Please double-check your email and verify the paths to the requested resources.'
+            COMMENT_BODY='Some of the links to the requested resources do not match the owner of the provided email. Please double check your email and the paths to the requested resources, and submit a new issue Github with correct information.'
             ISSUE_NUMBER=${{ github.event.issue.number }}
             curl -s -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Content-Type: application/json" \
               -d "{\"body\": \"$COMMENT_BODY\"}" \
               "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments" > /dev/null 2>&1
+            
+            # Add the "failed data retrieval" label
+            curl -s -X POST \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d '{"labels":["failed data retrieval"]}' \
+              "https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/labels" > /dev/null 2>&1
               
             # Close the issue
             curl -s -X PATCH \

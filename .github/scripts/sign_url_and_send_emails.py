@@ -128,6 +128,77 @@ def generate_signed_url(bucket_name, object_name):
         print(f"Error: {e}")
         return None
 
+
+def generate_html_body(urls):
+    # Create the HTML body
+    html_template = """
+    <html>
+    <head>
+        <title>Archived Files Retrieval</title>
+    </head>
+    <body>
+        <p>Hello,</p>
+
+        <p>This is an automated email. Below, you will find signed URLs to retrieve your archived files. Please note that these links are valid for 7 days.</p>
+
+        <p><strong>Link to Archived Files:</strong></p>
+        <ul>
+    """
+
+    # Loop through the URLs and add them to the HTML
+    for url in urls:
+        html_template += f"<li><a href='{url}' target='_blank'>{url}</a></li>"
+
+    # Close the HTML tags
+    html_template += """
+        </ul>
+
+        <p><strong>Action Required:</strong><br>
+        Download your files before the links expire.<br>
+        If you do not retrieve your files within 7 days, you will need to submit a new <a href="https://github.com/berkeley-dsep-infra/datahub/issues/new?template=data_archival_request.yml" target="_blank">GitHub Issue</a> to retrieve your files. To do so:</p>
+
+        <ul>
+            <li>Open a new GitHub issue using the unique URL found in the WHERE-ARE-MY-FILES.txt file.</li>
+            <li>Ensure that you have included both the UC Berkeley email address and the link to your DataHub folder, which should follow this format: <code>gs://ucb-datahub-archived-homedirs/semester-archived/hub-url/calnet-id.tar.gz</code></li>
+        </ul>
+
+        <p><strong>Steps to Extract Your Archived Files:</strong><br>
+        If you need help extracting the downloaded .tar file, please read below: (This information is targeted for users using Windows 11 or earlier versions).</p>
+
+        <p><strong>What is a .tar file?</strong><br>
+        A .tar file is a type of compressed file that holds many other files inside it, kind of like a folder zipped into one file. To access the files inside, you need to "untar" (or extract) them.</p>
+
+        <p><strong>Steps to Untar a .tar File:</strong></p>
+
+        <ol>
+            <li><strong>Download the .tar File:</strong> When you click on the shared link, you will be downloading a .tar file to your device. It could look something like <code>your-calnet-id.tar</code>.</li>
+            <li><strong>Open the Terminal (Command Line):</strong> You need to either use the "Terminal" (on Mac/Linux) or "Command Prompt" (on Windows) to untar the file.</li>
+            <ul>
+                <li><strong>On Windows:</strong> If you don’t have a program like 7-Zip, you can install it first.</li>
+                <li><strong>On Mac/Linux:</strong> The Terminal is already available, so you can open it from your Applications folder (Mac) or search for it in your app list (Linux).</li>
+            </ul>
+            <li><strong>Navigate to the Folder with the .tar File:</strong> Locate the .tar file. In Terminal or Command Prompt, use the <code>cd</code> command to navigate to the folder containing the file.</li>
+            <li><strong>Run the Command to Untar:</strong> Once you're in the right folder, type the following command to untar the file:</li>
+            <ul>
+                <li><strong>On Mac/Linux:</strong> Type this command in the Terminal:
+                    <pre><code>tar -xvf your-calnet-id.tar</code></pre>
+                </li>
+                <li><strong>On Windows:</strong> If you are using 7-Zip, right-click the .tar file, then choose <strong>7-Zip > Extract Here</strong>. This will extract the files in the same location.</li>
+            </ul>
+            <li><strong>Find Your Extracted Files:</strong> After the command runs (or you extract with 7-Zip), you should see a new folder (or a bunch of new files) appear. These are your files from DataHub that were inside the .tar archive.</li>
+        </ol>
+
+        <p>Best,</p>
+
+        <p><strong>DataHub Support Team</strong></p>
+    </body>
+    </html>
+    """
+
+    return html_template
+
+
+
 if __name__ == '__main__':
     # Sign URLs
     extracted_link = os.getenv('EXTRACTED_LINK')
@@ -150,13 +221,11 @@ if __name__ == '__main__':
     if service:
         sender = 'datahub-dataretrieval@berkeley.edu'  # Replace with your email address
         recipient = os.getenv('RECEIVER_EMAIL')  # Replace with recipient's email
-        subject = 'Your Request for Retrieving Old Files'
+        subject = 'Access Your Archived Files from DataHub (Valid for 7 Days)'
         
-        # Format the message
-        body = f"\n In response to your request [{issue_url}], please find the URL(s) to the files you requested:\n\n"
-     
-        for url in results:
-            body += f"{url}\n\n"
+
+        html_body = generate_html_body(results)
+
 
         # Send the email
-        send_email(service, sender, recipient, subject, body)
+        send_email(service, sender, recipient, subject, html_body)
