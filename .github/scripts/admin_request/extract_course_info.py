@@ -41,7 +41,6 @@ def main():
     body = read_issue_body(issue_file_path)
 
     print(f"Extracting course info from issue #{issue_id}")
-    print(f"Issue body:\n{body}\n")
 
     course_info = extract_issue_fields(body)
     url = course_info.get("hub_url", "")
