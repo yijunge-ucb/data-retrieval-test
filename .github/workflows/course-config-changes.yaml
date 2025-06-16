@@ -2,8 +2,9 @@ name: Process Issue to Create Branch and PR
 
 on:
   issues:
-    types: [opened]
-
+    types: 
+      - opened  # Trigger when an issue is opened
+      - reopened
 permissions:
   contents: write
   pull-requests: write
@@ -57,23 +58,23 @@ jobs:
         echo "Extracting course information ..."
         python3 .github/scripts/admin_request/extract_course_info.py
 
-    - name: Load variables
+    - name: Print extracted information
       run: |
-        set -a
-        source vars.env
-        set +a
+        echo "COURSE_ID: ${{ steps.extract_course_info.outputs.course_id }}"
+        echo "HUB_NAME: ${{ steps.extract_course_info.outputs.hub_name }}"
+        echo "NEW_BRANCH: ${{ steps.extract_course_info.outputs.new_branch }}"
 
     - name: Create new branch and modify config
       run: |
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
-        git checkout -b "$NEW_BRANCH"
+        git checkout -b "${{ steps.extract_course_info.outputs.new_branch }}"
 
         python3 .github/scripts/admin_request/add_admin_config.py 
   
-        git add deployments/${HUB_NAME}/config/common.yaml
+        git add deployments/${{ steps.extract_course_info.outputs.hub_name }}/config/common.yaml
         git commit -m "Add config for ${COURSE_ID}"
-        git push origin "$NEW_BRANCH"
+        git push origin "${{ steps.extract_course_info.outputs.new_branch }}"
 
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6

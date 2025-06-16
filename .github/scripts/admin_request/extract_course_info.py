@@ -21,14 +21,17 @@ hub_name = url.split(".")[0]
 issue_id = os.getenv("GITHUB_EVENT_ISSUE_NUMBER", "unknown")
 branch = f"issue_{issue_id}"
 
-# Output results
-print(f"::set-output name=course_id::{course_id}")
-print(f"::set-output name=hub_name::{hub_name}")
-print(f"::set-output name=new_branch::{branch}")
 
-# Save to vars.env
-with open("vars.env", "w") as f:
-    f.write(f"COURSE_ID={course_id}\n")
-    f.write(f"HUB_NAME={hub_name}\n")
-    f.write(f"END_DATE={end_date}\n")
-    f.write(f"NEW_BRANCH={branch}\n")
+outputs = {
+    "NEW_BRANCH": branch,
+    "HUB_NAME": hub_name,
+    "COURSE_ID": course_id,
+}
+
+output_path = os.environ.get("GITHUB_OUTPUT")
+if output_path:
+    with open(output_path, "a") as f:
+        for key, value in outputs.items():
+            f.write(f"{key}={value}\n")
+
+
