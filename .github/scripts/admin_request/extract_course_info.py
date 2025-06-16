@@ -7,17 +7,26 @@ def read_issue_body(path):
         return f.read()
     
 def extract_issue_fields(issue_body: str):
-    # Define a regex to match "### Field Name" followed by a value on the next line
-    pattern = r"### (.*?)\n([^\n#]+)"
-    matches = re.findall(pattern, issue_body)
+    lines = issue_body.splitlines()
+    data = {}
+    current_field = None
 
-    # Convert to a dictionary
-    data = {field.strip(): value.strip() for field, value in matches}
+    for line in lines:
+        line = line.strip()
 
-    # Extract the specific fields
-    hub_url = data.get("Hub URL", "")
-    course_id = data.get("bCourses ID", "")
-    end_date = data.get("End Date", "")
+        if line.startswith("### "):
+            # Found a new field header
+            current_field = line[4:].strip()
+            data[current_field] = None  # Reset for this field
+            continue
+
+        # Skip until we get a non-empty value for current field
+        if current_field and data[current_field] is None and line:
+            data[current_field] = line
+
+    hub_url = data.get("Hub URL", "").strip()
+    course_id = data.get("bCourses ID", "").strip()
+    end_date = data.get("End Date", "").strip()
 
     return {
         "hub_url": hub_url,
