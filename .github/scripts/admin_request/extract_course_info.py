@@ -1,44 +1,57 @@
 import os
 import re
 
-issue_id = os.getenv("ISSUE_NUMBER")
-body = os.getenv("ISSUE_BODY")
+
+def extract_issue_fields(issue_body: str):
+    # Define a regex to match "### Field Name" followed by a value on the next line
+    pattern = r"### (.*?)\n(.*?)\n"
+    matches = re.findall(pattern, issue_body)
+
+    # Convert to a dictionary
+    data = {field.strip(): value.strip() for field, value in matches}
+
+    # Extract the specific fields
+    hub_url = data.get("Hub URL", "")
+    course_id = data.get("bCourses ID", "")
+    end_date = data.get("End Date", "")
+
+    return {
+        "hub_url": hub_url,
+        "course_id": course_id,
+        "end_date": end_date,
+    }
 
 
-# Function to extract a field value by its ID
-def extract_field_value(body: str, field_id: str) -> str:
-    pattern = rf"<!-- id: {field_id} -->\s*(.*?)\s*(?=\n###|\Z)"
-    match = re.search(pattern, body, re.DOTALL)
-    return match.group(1).strip() if match else ""
+def main():
+    issue_id = os.getenv("ISSUE_NUMBER")
+    body = os.getenv("ISSUE_BODY")
 
-print(f"Extracting course info from issue #{issue_id}")
-print(f"Issue body:\n{body}\n")
-# Extract values
-url = extract_field_value(body, "hub_url")
-course_id = extract_field_value(body, "course_id")
-end_date = extract_field_value(body, "end_date")
+    print(f"Extracting course info from issue #{issue_id}")
+    print(f"Issue body:\n{body}\n")
 
-print(f"Extracted values:\n"
-      f"  Hub URL: {url}\n"
-      f"  Course ID: {course_id}\n"
-      f"  End Date: {end_date}\n")
-# Parse hub_name from URL
-hub_name = url.split(".")[0] 
+    course_info = extract_issue_fields(body)
+    url = course_info.get("hub_url", "")
+    course_id = course_info.get("course_id", "")        
+    end_date = course_info.get("end_date", "")
+     
+    hub_name = url.split(".")[0] 
+    branch = f"issue_{issue_id}"
+    
+    print(f"Extracted hub name: {hub_name}, course ID: {course_id}, end date: {end_date}")
 
+    outputs = {
+        "new_branch": branch,
+        "hub_name": hub_name,
+        "course_id": course_id,
+        "end_date": end_date,
+    }
 
-branch = f"issue_{issue_id}"
-
-
-outputs = {
-    "new_branch": branch,
-    "hub_name": hub_name,
-    "course_id": course_id,
-}
-
-output_path = os.environ.get("GITHUB_OUTPUT")
-if output_path:
-    with open(output_path, "a") as f:
-        for key, value in outputs.items():
-            f.write(f"{key}={value}\n")
+    output_path = os.environ.get("GITHUB_OUTPUT")
+    if output_path:
+        with open(output_path, "a") as f:
+            for key, value in outputs.items():
+                f.write(f"{key}={value}\n")
 
 
+if __name__ == "__main__":
+    main()
