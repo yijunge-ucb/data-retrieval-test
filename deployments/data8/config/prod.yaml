@@ -1,0 +1,46 @@
+nfsPVC:
+  nfs:
+    shareName: shares/data8/prod
+
+jupyterhub:
+  ingress:
+    enabled: true
+    hosts:
+      - data8.datahub.berkeley.edu
+    tls:
+      - secretName: tls-cert
+        hosts:
+          - data8.datahub.berkeley.edu
+  proxy:
+    chp:
+      resources:
+        requests:
+          # Give data8 a lot of guaranteed CPU, prevent 503s?
+          # https://github.com/berkeley-dsep-infra/datahub/issues/2677
+          cpu: 1
+  hub:
+    resources:
+      requests:
+        # Give data8 a lot of guaranteed CPU, prevent 503s?
+        # https://github.com/berkeley-dsep-infra/datahub/issues/2677
+        cpu: 1
+    db:
+      pvc:
+        # This also holds logs
+        storage: 4Gi
+    loadRoles:
+      grouper-sync:
+        name: grouper-sync
+        scopes:
+          - list:users
+          - read:users
+          - admin:auth_state
+        services:
+          - grouper-sync
+    services:
+      grouper-sync:
+        name: grouper-sync
+        environment:
+          JUPYTERHUB_API_URL: http://localhost:8081/hub/api
+          GROUPER_BASE_URL: https://calgroups.berkeley.edu/gws/servicesRest/json/v2_2_100
+          GROUPER_ID_PATH: edu:berkeley:app:datahub:datahub-data8-users

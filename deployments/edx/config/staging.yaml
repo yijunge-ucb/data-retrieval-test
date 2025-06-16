@@ -1,0 +1,20 @@
+nfsPVC:
+  nfs:
+    shareName: export/edxhomes-2023-08-28/staging
+jupyterhub:
+  prePuller:
+    continuous:
+      enabled: false
+  proxy:
+    service:
+      loadBalancerIP: 34.72.254.237
+    https:
+      hosts:
+        - edx-staging.datahub.berkeley.edu
+  hub:
+    services:
+      otter_grade:
+        url: http://grader-srv-staging.datahub.berkeley.edu:10101
+    image:
+      name: us-central1-docker.pkg.dev/data8x-scratch/core/hub
+      tag: '90bb3bf0'

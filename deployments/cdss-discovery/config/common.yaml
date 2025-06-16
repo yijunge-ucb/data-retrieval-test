@@ -1,0 +1,291 @@
+# A melding of https://ucsd-prp.gitlab.io/userdocs/jupyter/values.yaml and
+# datahub-based deployment configuration.
+
+# Nautilus does not use an NFS server.
+nfsPVC:
+  enabled: false
+
+# Nautilus does not let cluster admins set this.
+node-placholder:
+  priorityClass:
+    create: false
+
+jupyterhub:
+  scheduling:
+    podPriority:
+      enabled: false
+    userScheduler:
+      enabled: false
+    userPlaceholder:
+      enabled: false
+
+  prePuller:
+    hook:
+      enabled: false
+    continuous:
+      enabled: false
+
+  # We set this in hub/values, but we are forbidden from setting
+  # net.ipv4.ip_local_port_range at Nautilus, and the proxy replicaset will
+  # fail to deploy without this. This setting might not be relevant for
+  # Nautilus since their proxy might not be leaky.
+  proxy:
+    chp:
+      extraPodSpec:
+        securityContext:
+          sysctls: null
+
+  hub:
+    image:
+      name: gitlab-registry.nrp-nautilus.io/ryanlovett/datahub-nrp-hub-image
+      tag: b04f18a4
+    # Nautilus uses rook-ceph-block for hub db storage.
+    db:
+      type: sqlite-pvc
+      pvc:
+        accessModes:
+          - ReadWriteOnce
+        storage: 1Gi
+        # https://docs.nrp.ai/userdocs/storage/intro/
+        #storageClassName: rook-ceph-block
+        # https://docs.nrp.ai/userdocs/storage/linstor/
+        storageClassName: linstor-igrok
+    nodeSelector:
+      "topology.kubernetes.io/region": "us-west"
+      "nautilus.io/linstor": "true"
+    resources:
+      limits:
+        cpu: "2"
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 512Mi
+    # We set this in hub/values, but we should unset it on Nautilus
+    networkPolicy:
+      enabled: false
+      egress: null
+    config:
+      OAuthenticator:
+        allow_all: False
+        allowed_groups:
+          # CDSS Discovery 2025 Spring
+          # https://bcourses.berkeley.edu/courses/1543936
+          - "course::1543936"
+          # DataHub staff
+          - "course::1524699::group::all-admins"
+          # People who want to see what the hub can do
+          - "course::1524699::group::cdss-discovery-observers"
+    loadRoles:
+      # datahub staff
+      datahub-staff:
+        description: Enable admin for datahub staff
+        # this role provides permissions to...
+        scopes:
+          - admin-ui
+          - admin:groups
+          - admin:users
+          - admin:servers
+          - read:roles
+          - read:hub
+          - access:servers
+        # this role will be assigned to...
+        groups:
+          - course::1524699::group::all-admins
+
+  # Nautilus uses haproxy for ingress
+  ingress:
+    enabled: true
+    ingressClassName: haproxy
+    annotations:
+      cert-manager.io/issuer: letsencrypt
+      cert-manager.io/cluster-issuer: null
+    pathSuffix: ''
+
+  singleuser:
+    image:
+      name: gitlab-registry.nrp-nautilus.io/berkeley-cdss/cdss-discovery-user-image
+      tag: latest
+
+    # Nautilus-specific configuration
+    uid: 0
+    fsGid: 100
+    extraEnv:
+      GRANT_SUDO: "yes"
+      # Unset NotebookApp from hub/values. Necessary for recent lab versions.
+      JUPYTERHUB_SINGLEUSER_APP: "jupyter_server.serverapp.ServerApp"
+    defaultUrl: /lab
+    extraPodConfig:
+      securityContext:
+          fsGroupChangePolicy: "OnRootMismatch"
+          fsGroup: 100
+    extraNodeAffinity:
+      required:
+        - matchExpressions:
+          - 'key': 'topology.kubernetes.io/region'
+            'operator': 'In'
+            'values': ["us-west"]
+
+          # https://docs.nationalresearchplatform.org/userdocs/running/gpu-pods/
+          - 'key': 'nvidia.com/gpu.product'
+            'operator': 'In'
+            'values': [
+              "NVIDIA-GeForce-RTX-4090",
+              "NVIDIA-L40",
+              "NVIDIA-RTX-A6000",
+              "NVIDIA-GeForce-RTX-3090",
+              "NVIDIA-A40",
+              "NVIDIA-RTX-A5000",
+              "NVIDIA-GeForce-RTX-2080-Ti",
+              "NVIDIA-TITAN-RTX",
+              "NVIDIA-A10",
+              "NVIDIA-RTX-A4000",
+              "NVIDIA-L4",
+              "NVIDIA-GeForce-GTX-1080-Ti"
+            ]
+    cloudMetadata:
+      blockWithIptables: false
+    networkPolicy:
+      enabled: false
+    # /Nautilus-specific configuration
+    extraFiles:
+      # DH-216
+      remove-exporters:
+        mountPath: /etc/jupyter/jupyter_notebook_config.py
+        stringData: |
+          c.QtPDFExporter.enabled = False
+          c.QtPNGExporter.enabled = False
+          c.WebPDFExporter.enabled = False
+
+    # Nautilus-specific configuration
+    storage:
+      type: dynamic
+      extraLabels: {}
+      extraVolumes: []
+      extraVolumeMounts: []
+      capacity: 20Gi
+      homeMountPath: /home/jovyan
+      dynamic:
+        storageClass: rook-ceph-block
+        pvcNameTemplate: claim-{username}{servername}
+        volumeNameTemplate: volume-{username}{servername}
+        storageAccessModes: [ReadWriteOnce]
+    # /Nautilus-specific configuration
+
+    startTimeout: 3600
+
+    # Policy on interactive limits
+    # https://docs.nationalresearchplatform.org/userdocs/start/policies/#interactive-use-vs-batch
+    cpu:
+      guarantee: 2
+      limit: 10
+      #limit: 16
+    memory:
+      guarantee: 10G
+      limit: 10G
+      #limit: 32G
+    extraResource:
+      # The gpu request must equal the limit
+      guarantees:
+        nvidia.com/gpu: "1"
+      limits:
+        nvidia.com/gpu: "1"
+
+    profileList:
+    - display_name: "CPU instance"
+      description: "Your server will have no GPU, but may launch faster."
+      slug: "cpu-custom-memory"
+      kubespawner_override:
+        mem_limit: "10G"
+        extra_resource_guarantees:
+          nvidia.com/gpu: "0"
+        extra_resource_limits:
+          nvidia.com/gpu: "0"
+        image: gitlab-registry.nrp-nautilus.io/berkeley-cdss/cdss-discovery-cpu-user-image:e5750bf2
+      profile_options:
+        mem_limit:
+          display_name: "CPU RAM Limit"
+          choices:
+            mem_10g:
+              default: true
+              display_name: "10G"
+              kubespawner_override:
+                mem_limit: "10G"
+            mem_16g:
+              display_name: "16G"
+              kubespawner_override:
+                mem_limit: "16G"
+            mem_24g:
+              display_name: "24G"
+              kubespawner_override:
+                mem_limit: "24G"
+            mem_32g:
+              display_name: "32G"
+              kubespawner_override:
+                mem_limit: "32G"
+    - display_name: "GPU instance"
+      description: "Your server will request and wait for a GPU."
+      slug: "gpu-custom-memory"
+      kubespawner_override:
+        mem_limit: "10G"
+        extra_resource_guarantees:
+          nvidia.com/gpu: "1"
+        extra_resource_limits:
+          nvidia.com/gpu: "1"
+        image: gitlab-registry.nrp-nautilus.io/berkeley-cdss/cdss-discovery-user-image:476b008f
+      profile_options:
+        mem_limit:
+          display_name: "CPU RAM Limit"
+          choices:
+            mem_10g:
+              default: true
+              display_name: "10G"
+              kubespawner_override:
+                mem_limit: "10G"
+            mem_16g:
+              display_name: "16G"
+              kubespawner_override:
+                mem_limit: "16G"
+            mem_24g:
+              display_name: "24G"
+              kubespawner_override:
+                mem_limit: "24G"
+            mem_32g:
+              display_name: "32G"
+              kubespawner_override:
+                mem_limit: "32G"
+  #custom:
+  #  group_profiles:
+  #
+  #    # Example: increase memory for everyone affiliated with a course.
+  #
+  #    # Name of Class 100, Fall '22; requested in #98765
+  #    course::123456:
+  #      mem_limit: 4096M
+  #      mem_guarantee: 2048M
+  #
+  #    # Example: grant admin rights to course staff.
+  #    # Enrollment types returned by the Canvas API are `teacher`,
+  #    # `student`, `ta`, `observer`, and `designer`.
+  #    # https://canvas.instructure.com/doc/api/enrollments.html
+  #
+  #    # Some other class 200, Spring '23; requested in #98776
+  #    course::234567::enrollment_type::teacher:
+  #      mem_limit: 2096M
+  #      mem_guarantee: 2048M
+  #    course::234567::enrollment_type::ta:
+  #      mem_limit: 2096M
+  #      mem_guarantee: 2048M
+  #
+  #
+  #    # Example: a fully specified CanvasOAuthenticator group name.
+  #    # This could be useful for temporary resource bumps where the
+  #    # instructor could add people to groups in the bCourses UI. This
+  #    # would benefit from the ability to read resource bumps from
+  #    # jupyterhub's properties. (attributes in the ORM)
+  #
+  #    # Name of Class 100, Fall '22; requested in #98770
+  #    course::123456::group::lab4-bigdata:
+  #      - mountPath: /home/rstudio/.ssh
+  #        name: home
+  #        subPath: _some_directory/_ssh
+  #        readOnly: true

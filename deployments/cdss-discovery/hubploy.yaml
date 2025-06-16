@@ -1,0 +1,12 @@
+#images:
+#  images:
+#    # Manually pushed
+#    #- name: "gitlab-registry.nrp-nautilus.io/ryanlovett/cdss-discovery-user-image/cdss-discovery-user-image:0df58a734f77"
+#    # Built at NRP
+#    - name: "gitlab-registry.nrp-nautilus.io/ryanlovett/cdss-discovery-user-image:598290f0"
+
+cluster:
+  provider: kubeconfig
+  kubeconfig:
+    filename: kubeconfig.yaml
+    context: "{namespace}"

@@ -1,0 +1,109 @@
+nfsPVC:
+  enabled: true
+  nfs:
+    serverIP: 10.185.238.42
+
+jupyterhub:
+  scheduling:
+    userScheduler:
+      nodeSelector:
+        hub.jupyter.org/pool-name: core-pool-2024-05-08
+  proxy:
+    chp:
+      nodeSelector:
+        hub.jupyter.org/pool-name: core-pool-2024-05-08
+
+  hub:
+    nodeSelector:
+      hub.jupyter.org/pool-name: core-pool-2024-05-08
+    config:
+    loadRoles:
+      # datahub staff
+      datahub-staff:
+        description: Enable admin for datahub staff
+        # this role provides permissions to...
+        scopes:
+          - admin-ui
+          - admin:groups
+          - admin:users
+          - admin:servers
+          - read:roles
+          - read:hub
+          - access:servers
+        # this role will be assigned to...
+        groups:
+          - course::1524699::group::all-admins
+      # For folks doing work related to a11y extension
+      course-staff-1535449:
+        description: Enable olks doing work related to a11y checker extension to view and access servers.
+        # this role provides permissions to...
+        scopes:
+          - admin-ui
+          - list:users!group=course::1535449
+          - admin:servers!group=course::1535449
+          - access:servers!group=course::1535449
+        # this role will be assigned to...
+        groups:
+         - course::1535449::group::admin
+
+  custom:
+    group_profiles:
+      # DataHub Infrastructure staff
+      # https://bcourses.berkeley.edu/courses/1524699/groups#tab-80607
+      course::1524699::group::all-admins:
+        extraVolumeMounts:
+          - name: home
+            mountPath: /home/jovyan/shared-readwrite
+            subPath: _shared
+
+  singleuser:
+    extraFiles:
+      # DH-216
+      remove-exporters:
+        mountPath: /etc/jupyter/jupyter_notebook_config.py
+        stringData: |
+          c.QtPDFExporter.enabled = False
+          c.QtPNGExporter.enabled = False
+          c.WebPDFExporter.enabled = False
+      # proxy ollama
+      proxy-ollama:
+        # https://jupyter-server-proxy.readthedocs.io/en/latest/server-process.html#specifying-config-via-traitlets
+        mountPath: /etc/jupyter/jupyter_server_config.py
+        stringData: |
+          c.ServerProxy.servers = {
+            "ollama": {
+              "command": ["ollama", "serve"],
+              # This is for shared read-only ollama models. Anyone with
+              # read-write access can modify this. They would need to override
+              # the variable to /home/jovyan/shared-readwrite/ollama-models.
+              "environment": {
+                "OLLAMA_MODELS": "/home/jovyan/shared/ollama-models"
+              },
+              "port": 11434,
+              # This is not a user-facing web application
+              "launcher_entry": {
+                "enabled": False
+              }
+            }
+          }
+    extraEnv:
+      # Unset NotebookApp from hub/values. Necessary for recent lab versions.
+      JUPYTERHUB_SINGLEUSER_APP: "jupyter_server.serverapp.ServerApp"
+      OLLAMA_ORIGINS: "*"
+      OLLAMA_HOST: "0.0.0.0:11434"
+      OLLAMA_DEBUG: "1"
+    nodeSelector:
+      hub.jupyter.org/pool-name: small-courses-pool
+    storage:
+      type: static
+      static:
+        pvcName: home-nfs-v3
+        subPath: "{username}"
+      extraVolumeMounts:
+        - name: home
+          mountPath: /home/jovyan/shared
+          subPath: _shared
+          readOnly: true
+    memory:
+      guarantee: 8G
+      limit: 8G

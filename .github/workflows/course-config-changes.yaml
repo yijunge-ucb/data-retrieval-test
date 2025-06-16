@@ -1,0 +1,61 @@
+name: Process Issue to Create Branch and PR
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  handle-issue:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        ref: staging
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: pip install ruamel.yaml 
+
+    - name: Extract data from issue
+      id: extract_course_info
+      run: |
+        echo "Extracting course information ..."
+        python3 scripts/admin_request/extract_course_info.py
+
+    - name: Load variables
+      run: |
+        set -a
+        source vars.env
+        set +a
+
+    - name: Create new branch and modify config
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git checkout -b "$NEW_BRANCH"
+
+        python3 scripts/admin_request/add_admin_config.py 
+  
+        git add deployments/${HUB_NAME}/config/common.yaml
+        git commit -m "Add config for ${COURSE_ID}"
+        git push origin "$NEW_BRANCH"
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        source: ${{ steps.extract_course_info.outputs.new_branch }}
+        base: staging
+        title: "Add ${{ steps.extract_course_info.outputs.course_id }} config (issue #${{ github.event.issue.number }})"
+        body: |
+          Automatically generated PR to add admin configs for `${{ steps.extract_course_info.outputs.course_id }}`

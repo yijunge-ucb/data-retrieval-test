@@ -1,0 +1,102 @@
+nfsPVC:
+  enabled: true
+  nfs:
+    serverIP: 10.185.238.42
+
+jupyterhub:
+  scheduling:
+    userScheduler:
+      nodeSelector:
+        hub.jupyter.org/pool-name: core-pool-2024-05-08
+  proxy:
+    chp:
+      nodeSelector:
+        hub.jupyter.org/pool-name: core-pool-2024-05-08
+
+  hub:
+    nodeSelector:
+      hub.jupyter.org/pool-name: core-pool-2024-05-08
+    config:
+    loadRoles:
+      # datahub staff
+      datahub-staff:
+        description: Enable admin for datahub staff
+        # this role provides permissions to...
+        scopes:
+          - admin-ui
+          - admin:groups
+          - admin:users
+          - admin:servers
+          - read:roles
+          - read:hub
+          - access:servers
+        # this role will be assigned to...
+        groups:
+          - course::1524699::group::all-admins
+      # astro admins
+      astro-admins:
+        description: Enable astro folks to view and access all servers.
+        # this role provides permissions to...
+        scopes:
+          - admin-ui
+          - list:users
+          - admin:servers
+          - access:servers
+        # this role will be assigned to...
+        groups:
+          - course::1524699::group::astro-admins
+
+      # Template for enabling elevated privileges for course staff
+      #course-staff-bcoursesid:
+      #  description: Enable course staff to view and access servers.
+      #   this role provides permissions to...
+      #  scopes:
+      #    - admin-ui
+      #    - list:users!group=course::bcoursesid
+      #    - admin:servers!group=course::bcoursesid
+      #    - access:servers!group=course::bcoursesid
+        # this role will be assigned to...
+      #  groups:
+      #    - course::bcoursesid::enrollment_type::teacher
+      #    - course::bcoursesid::enrollment_type::ta
+
+  singleuser:
+    extraFiles:
+      # DH-305
+      remove-exporters:
+        mountPath: /etc/jupyter/jupyter_notebook_config.py
+        stringData: |
+          c.QtPDFExporter.enabled = False
+          c.QtPNGExporter.enabled = False
+          c.WebPDFExporter.embed_images = True
+    extraEnv:
+      # Unset NotebookApp from hub/values. Necessary for recent lab versions.
+      JUPYTERHUB_SINGLEUSER_APP: "jupyter_server.serverapp.ServerApp"
+    nodeSelector:
+      hub.jupyter.org/pool-name: astro-pool
+    storage:
+      type: static
+      static:
+        pvcName: home-nfs-v3
+        subPath: "{username}"
+      extraVolumeMounts:
+        - name: home
+          mountPath: /home/jovyan/shared
+          subPath: _shared
+          readOnly: true
+    memory:
+      guarantee: 1024M
+      limit: 4096M
+
+  # read by z2jh.get_config() in hub/values.yaml
+  # formerly jupyterhub.hub.extraConfigMap
+  custom:
+    group_profiles:
+      # DataHub Infrastructure staff
+      # https://bcourses.berkeley.edu/courses/1524699/groups#tab-80607
+      course::1524699::group::all-admins:
+        mem_limit: 4G
+        extraVolumeMounts:
+          - name: home
+            mountPath: /home/jovyan/shared-readwrite
+            subPath: _shared

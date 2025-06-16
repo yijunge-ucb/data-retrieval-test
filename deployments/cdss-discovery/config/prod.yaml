@@ -1,0 +1,8 @@
+jupyterhub:
+  ingress:
+    hosts:
+      - cdss-discovery.datahub.berkeley.edu
+    tls:
+      - secretName: tls-cert
+        hosts:
+          - cdss-discovery.datahub.berkeley.edu

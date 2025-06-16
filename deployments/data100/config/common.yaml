@@ -1,0 +1,130 @@
+nfsPVC:
+  enabled: true
+  nfs:
+    serverIP: 10.170.213.154
+
+jupyterhub:
+  scheduling:
+    userScheduler:
+      nodeSelector:
+        hub.jupyter.org/pool-name: core-pool-2024-05-08
+  proxy:
+    chp:
+      nodeSelector:
+        hub.jupyter.org/pool-name: core-pool-2024-05-08
+      resources:
+        requests:
+          # FIXME: We want no guarantees here!!!
+          # This is lowest possible value
+          cpu: 0.001
+          memory: 3Gi
+        limits:
+          memory: 3Gi
+
+  hub:
+    nodeSelector:
+      hub.jupyter.org/pool-name: core-pool-2024-05-08
+    config:
+    loadRoles:
+      # datahub staff
+      datahub-staff:
+        description: Enable admin for datahub staff
+        # this role provides permissions to...
+        scopes:
+          - admin-ui
+          - admin:groups
+          - admin:users
+          - admin:servers
+          - read:roles
+          - read:hub
+          - access:servers
+        # this role will be assigned to...
+        groups:
+          - course::1524699::group::all-admins
+
+# This configuration block is used to enable elevated privileges for teachers and TAs in Data100 hub
+       #Data 100, Semester/Year, https://github.com/berkeley-dsep-infra/datahub/issues/6458
+      #course-staff-1537664:
+      #  description: Enable course staff to view and access servers.
+        # this role provides permissions to...
+       # scopes:
+        #  - admin-ui
+        #  - list:users!group=course::1537664
+        #  - admin:servers!group=course::1537664
+        #  - access:servers!group=course::1537664
+        # this role will be assigned to...
+        #groups:
+         # - course::1537664::group::Admins
+
+#  prePuller:
+#    extraImages:
+#      postgres:
+#        name: gcr.io/ucb-datahub-2018/jupyterhub-postgres
+#        tag: 0.0.1-n3657.h4f7f88c
+
+  singleuser:
+    extraFiles:
+      # DH-305
+      remove-exporters:
+        mountPath: /etc/jupyter/jupyter_notebook_config.py
+        stringData: |
+          c.QtPDFExporter.enabled = False
+          c.QtPNGExporter.enabled = False
+          c.WebPDFExporter.embed_images = True
+    defaultUrl: "/lab"
+    extraEnv:
+      GH_SCOPED_CREDS_CLIENT_ID: Iv1.f79b4903c7ea2847
+      GH_SCOPED_CREDS_APP_URL: https://github.com/apps/data100-berkeley-datahub-access
+      # Unset NotebookApp from hub/values. Necessary for recent lab versions.
+      JUPYTERHUB_SINGLEUSER_APP: "jupyter_server.serverapp.ServerApp"
+    nodeSelector:
+      hub.jupyter.org/pool-name: data100-pool
+    storage:
+      type: static
+      static:
+        pvcName: home-nfs-v3
+        subPath: "{username}"
+    memory:
+      guarantee: 2G
+      limit: 4G
+    image: {}
+
+# The below section is for adding shared directories in Data100 Hub.
+
+# custom:
+#   group_profiles:
+#     # Teacher Configuration
+#     # This configuration sets up directory access for teachers in the course.
+#     course::1541798::enrollment_type::teacher:
+#       extraVolumeMounts:
+#         - name: home
+#           # Path where teachers have read/write access.
+#           mountPath: /home/jovyan/_shared/data100-readwrite
+#           # Sub-path within filesystem for teacher access.
+#           subPath: _shared/2025-spring/courses/1541798
+#           # Set to false to enable write access for teachers.
+#           readOnly: false
+
+#     # Teaching Assistant (TA) Configuration
+#     # This configuration sets up directory access for TAs in the course.
+#     course::1541798::enrollment_type::ta:
+#       extraVolumeMounts:
+#         - name: home
+#           # Path where TAs have read/write access.
+#           mountPath: /home/jovyan/_shared/data100-readwrite
+#           # Sub-path within filesystem for TA access.
+#           subPath: _shared/2025-spring/courses/1541798
+#           # Set to false to enable write access for TAs.
+#           readOnly: false
+
+#     # Student Configuration
+#     # This configuration sets up directory access for students in the course.
+#     course::1541798::enrollment_type::student:
+#       extraVolumeMounts:
+#         - name: home
+#           # Path where students have read-only access.
+#           mountPath: /home/jovyan/_shared/data100-readonly
+#           # Sub-path within filesystem for student access.
+#           subPath: _shared/2025-spring/courses/1541798
+#           # Set to true to restrict write access for students.
+#           readOnly: true
