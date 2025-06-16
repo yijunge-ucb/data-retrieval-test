@@ -56,7 +56,10 @@ jobs:
       id: extract_course_info
       run: |
         echo "Extracting course information ..."
-        python3 .github/scripts/admin_request/extract_course_info.py
+        python3 .github/scripts/admin_request/extract_course_info.py 
+      env:
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        ISSUE_BODY: ${{ github.event.issue.body }}
 
     - name: Print extracted information
       run: |
