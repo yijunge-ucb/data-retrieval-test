@@ -17,17 +17,17 @@ jobs:
       label_found: ${{ steps.check_label.outputs.label_found }}
 
     steps:
-      - name: Check if "admin_request" label is present
+      - name: Check if "admin request" label is present
         id: check_label
         run: |
           echo "Labels: ${{ toJson(github.event.issue.labels) }}"
     
-          if [[ "${{ contains(github.event.issue.labels.*.name, 'admin_request') }}" == "true" ]]; then
-            echo "Label 'data retrieval' found. Proceeding..."
+          if [[ "${{ contains(github.event.issue.labels.*.name, 'admin request') }}" == "true" ]]; then
+            echo "Label 'admin request' found. Proceeding..."
             echo "label_found=true" >> $GITHUB_ENV
             echo "label_found=true" >> $GITHUB_OUTPUT
           else
-            echo "Label 'data retrieval' not found. Exiting..."
+            echo "Label 'admin request' not found. Exiting..."
             echo "label_found=false" >> $GITHUB_ENV
             echo "label_found=false" >> $GITHUB_OUTPUT
           fi

@@ -1,7 +1,7 @@
 name: Request Elevated Privileges for Course Staff
 description: Enable course staff to manage student servers
 title: Request Elevated Privileges for Course Staff
-labels: ["support", "admin_request"]
+labels: ["support", "admin request"]
 assignees: ["yijunge-ucb"]
 body:
   - type: markdown
