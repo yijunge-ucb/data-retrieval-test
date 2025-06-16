@@ -1,8 +1,13 @@
 name: Request Elevated Privileges for Course Staff
 description: Enable course staff to manage student servers
+title: Request Elevated Privileges for Course Staff
 labels: ["support", "admin_request"]
 assignees: ["yijunge-ucb"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Course staff may be assigned elevated privileges on a hub to view and manage student servers. Please follow the sections in the template below and share the required information. If you are curious to understand the process through which we assign privileges, please refer to [our documentation](https://docs.datahub.berkeley.edu/en/latest/admins/howto/course-config.html#defining-group-profiles).
   - type: input
     attributes:
       label: Your Name
