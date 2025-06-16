@@ -52,14 +52,16 @@ jobs:
     - name: Install dependencies
       run: pip install ruamel.yaml 
 
+    - name: Write issue body to file
+      run: echo "${{ github.event.issue.body }}" > issue_body.txt
+
     - name: Extract data from issue
       id: extract_course_info
       run: |
         echo "Extracting course information ..."
-        python3 .github/scripts/admin_request/extract_course_info.py 
+        python3 .github/scripts/admin_request/extract_course_info.py  issue_body.txt
       env:
         ISSUE_NUMBER: ${{ github.event.issue.number }}
-        ISSUE_BODY: ${{ github.event.issue.body }}
 
     - name: Print extracted information
       run: |

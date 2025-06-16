@@ -1,10 +1,14 @@
 import os
 import re
+import sys
 
-
+def read_issue_body(path):
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+    
 def extract_issue_fields(issue_body: str):
     # Define a regex to match "### Field Name" followed by a value on the next line
-    pattern = r"### (.*?)\n(.*?)\n"
+    pattern = r"### (.*?)\n([^\n#]+)"
     matches = re.findall(pattern, issue_body)
 
     # Convert to a dictionary
@@ -24,7 +28,8 @@ def extract_issue_fields(issue_body: str):
 
 def main():
     issue_id = os.getenv("ISSUE_NUMBER")
-    body = os.getenv("ISSUE_BODY")
+    issue_file_path = sys.argv[1]
+    body = read_issue_body(issue_file_path)
 
     print(f"Extracting course info from issue #{issue_id}")
     print(f"Issue body:\n{body}\n")
@@ -36,7 +41,7 @@ def main():
      
     hub_name = url.split(".")[0] 
     branch = f"issue_{issue_id}"
-    
+
     print(f"Extracted hub name: {hub_name}, course ID: {course_id}, end date: {end_date}")
 
     outputs = {
