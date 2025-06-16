@@ -76,13 +76,26 @@ jobs:
       env:
         hub_name: ${{ steps.extract_course_info.outputs.hub_name }}
         course_id: ${{ steps.extract_course_info.outputs.course_id }}
-
+    
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v6
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        source: ${{ steps.extract_course_info.outputs.new_branch }}
-        base: staging
-        title: "Add ${{ steps.extract_course_info.outputs.course_id }} config (issue #${{ github.event.issue.number }})"
-        body: |
-          Automatically generated PR to add admin configs for `${{ steps.extract_course_info.outputs.course_id }}`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: ${{ steps.extract_course_info.outputs.new_branch }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          # Set reviewers (GitHub usernames)
+          REVIEWERS="yijunge-ucb"
+          LABELS="admin request,support"
+
+          # Check if PR already exists
+          if gh pr list --base main --head "$BRANCH_NAME" --json number | grep -q '"number":'; then
+            echo "PR already exists. Skipping."
+          else
+            gh pr create \
+              --base main \
+              --head "$BRANCH_NAME" \
+              --title "Merge from $BRANCH_NAME to main ($ISSUE_NUMBER)" \
+              --body "Merge from $BRANCH_NAME to main ($ISSUE_NUMBER)" \
+              --reviewer "$REVIEWERS" \
+              --label "$LABELS"
+          fi
