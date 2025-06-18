@@ -33,7 +33,6 @@ body:
         - publichealth.datahub.berkeley.edu
         - stat159.datahub.berkeley.edu
         - stat20.datahub.berkeley.edu
-        - other
     validations:
       required: true
 
@@ -88,7 +87,7 @@ body:
   - type: input
     id: fulfillment-date
     attributes:
-      label: "By what date (MM/DD) do you want this request to be fulfilled?"
+      label: "By what date (MM/DD/YYYY) do you want this request to be fulfilled?"
       description: "This will help us with the prioritization of this request."
     validations:
       required: true
@@ -96,7 +95,7 @@ body:
   - type: input
     id: end-date
     attributes:
-      label: "Until when (MM/DD) do you require the additional RAM?"
+      label: "Until when (MM/DD/YYYY) do you require the additional RAM?"
       description: "This will help us scale down resources when the RAM increase is no longer required"
     validations:
       required: true

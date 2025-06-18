@@ -102,7 +102,7 @@ def main():
         raise ValueError("Missing required environment variables: hub_name, course_id")
 
     # Path to the YAML config
-    yaml_path = Path(f"../../../deployments/{hub_name}/config/common.yaml")
+    yaml_path = Path(f"deployments/{hub_name}/config/common.yaml")
 
     if not yaml_path.exists():
         raise FileNotFoundError(f"Config file not found: {yaml_path}")

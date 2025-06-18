@@ -58,7 +58,6 @@ body:
         - publichealth.datahub.berkeley.edu
         - stat159.datahub.berkeley.edu
         - stat20.datahub.berkeley.edu
-        - other
     validations:
       required: true
   - type: input
