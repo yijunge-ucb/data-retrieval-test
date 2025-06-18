@@ -61,6 +61,9 @@ jupyterhub:
             mountPath: /home/jovyan/shared-readwrite
             subPath: _shared
 
+      course::0000000:
+        mem_limit: 5G
+        mem_guarantee: 5G
   singleuser:
     extraEnv:
       # Unset NotebookApp from hub/values. Necessary for recent lab versions.
