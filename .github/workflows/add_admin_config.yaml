@@ -55,29 +55,40 @@ jobs:
     - name: Extract data from issue
       id: extract_course_info
       run: |
-        python3 .github/scripts/admin_request/extract_course_info.py  issue_body.txt
+        python3 .github/scripts/extract_course_info.py  issue_body.txt
       env:
         ISSUE_NUMBER: ${{ github.event.issue.number }}
 
     - name: Create new branch and modify config
+      id: modify-config
       run: |
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
         git checkout -b "${{ steps.extract_course_info.outputs.new_branch }}"
 
         python3 .github/scripts/admin_request/add_admin_config.py 
-  
-        git add deployments/${{ steps.extract_course_info.outputs.hub_name }}/config/common.yaml
-        git commit -m "Add config for ${{ steps.extract_course_info.outputs.course_id }} to deployments/${{ steps.extract_course_info.outputs.hub_name }}/config/common.yaml"
-        git push origin "${{ steps.extract_course_info.outputs.new_branch }}"
+        FILE_PATH="deployments/${{ steps.extract_course_info.outputs.hub_name }}/config/common.yaml"
+
+        if ! git diff --quiet "$FILE_PATH"; then
+          echo "Changes detected in $FILE_PATH. Committing..."
+          git add "$FILE_PATH"
+          git commit -m "Add admin config for ${{ steps.extract_course_info.outputs.course_id }} to $FILE_PATH"
+          git push origin "${{ steps.extract_course_info.outputs.new_branch }}"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "No changes detected in $FILE_PATH. Skipping commit and push."
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+        fi
       env:
         hub_name: ${{ steps.extract_course_info.outputs.hub_name }}
         course_id: ${{ steps.extract_course_info.outputs.course_id }}
     
     - name: Authenticate gh CLI
+      if: steps.modify-config.outputs.changed == 'true'
       run: echo "${{ secrets.MYPAT }}" | gh auth login --with-token
 
     - name: Create Pull Request
+      if: steps.modify-config.outputs.changed == 'true'
       env:
         BRANCH_NAME: ${{ steps.extract_course_info.outputs.new_branch }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -98,3 +109,6 @@ jobs:
             --reviewer "$REVIEWERS" \
             --label "$LABELS"
         fi
+
+
+    

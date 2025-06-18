@@ -27,11 +27,13 @@ def extract_issue_fields(issue_body: str):
     hub_url = data.get("Hub URL", "").strip()
     course_id = data.get("bCourses ID(s)", "").strip()
     end_date = data.get("End Date", "").strip()
+    memory = data.get("How much RAM per user is needed?", "").strip()
 
     return {
         "hub_url": hub_url,
         "course_id": course_id,
         "end_date": end_date,
+        "memory": memory,
     }
 
 
@@ -46,17 +48,24 @@ def main():
     url = course_info.get("hub_url", "")
     course_id = course_info.get("course_id", "")        
     end_date = course_info.get("end_date", "")
+    memory = course_info.get("memory", "")
      
     hub_name = url.split(".")[0] 
     branch = f"issue_{issue_id}"
 
-    print(f"Extracted hub name: {hub_name}, course ID: {course_id}, end date: {end_date}")
+
+    print(f"Extracted hub name: {hub_name}\n course ID: {course_id}")
+    if end_date:
+        print(f"End date: {end_date} \n")
+    if memory:
+        print(f"Memory request: {memory} \n")
 
     outputs = {
         "new_branch": branch,
         "hub_name": hub_name,
         "course_id": course_id,
         "end_date": end_date,
+        "memory_requested": memory,
     }
 
     output_path = os.environ.get("GITHUB_OUTPUT")
