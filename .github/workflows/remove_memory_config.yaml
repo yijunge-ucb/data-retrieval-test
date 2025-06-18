@@ -1,10 +1,12 @@
 name: Remove Memory Configs Based on the Instructor/TA Request and Create a PR
 
 on:
-  issues:
-    types: 
-      - opened  # Trigger when an issue is opened
-      - reopened
+  workflow_call:
+    inputs:
+      issue_number:
+        required: true
+        type: number
+
 permissions:
   contents: write
   pull-requests: write

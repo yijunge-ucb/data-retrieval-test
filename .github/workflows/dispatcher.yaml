@@ -1,0 +1,48 @@
+name: Dispatcher Workflow
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  contents: read
+  actions: write  
+  issues: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check labels and dispatch corresponding workflows
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Issue labels: ${{ toJson(github.event.issue.labels) }}"
+          
+          if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"data retrieval"'; then
+            echo "Triggering data retrieval workflow..."
+            gh workflow run data_archival_request.yml -f issue_number=${{ github.event.issue.number }}
+          fi
+
+          if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"add amin config"'; then
+            echo "Triggering add admin config workflow..."
+            gh workflow run add_admin_config_request.yml -f issue_number=${{ github.event.issue.number }}
+          fi
+
+          if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"remove admin config"'; then
+            echo "Triggering remove admin config workflow..."
+            gh workflow run remove_admin_config_request.yml -f issue_number=${{ github.event.issue.number }}
+          fi
+
+          if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"add memory config"'; then
+            echo "Triggering add memory config workflow..."
+            gh workflow run add_memory_config_request.yml -f issue_number=${{ github.event.issue.number }}
+          fi
+
+          if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"remove memory config"'; then
+            echo "Triggering remove memory config workflow..."
+            gh workflow run remove_memory_config_request.yml -f issue_number=${{ github.event.issue.number }}
+          fi
+
+          echo "Dispatch complete."
