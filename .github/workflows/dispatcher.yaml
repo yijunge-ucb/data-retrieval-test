@@ -18,35 +18,33 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       
-      - name: Check labels and dispatch corresponding workflows
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Issue labels: ${{ toJson(github.event.issue.labels) }}"
-          
-          if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"data retrieval"'; then
-            echo "Triggering data retrieval workflow..."
-            gh workflow run data-retrieval.yaml -f issue_number=${{ github.event.issue.number }}
-          fi
+      - name: Dispatch request1 workflow if label matches data retrieval
+        if: contains(toJson(github.event.issue.labels), 'data retrieval')
+        uses: .github/workflows/data-retrieval.yaml
+        with:
+          issue_number: ${{ github.event.issue.number }}
+      
+      - name: Dispatch request1 workflow if label matches add admin config
+        if: contains(toJson(github.event.issue.labels), 'add admin config')
+        uses: .github/workflows/add_admin_config.yaml
+        with:
+          issue_number: ${{ github.event.issue.number }}
+      
+      - name: Dispatch request1 workflow if label matches remove admin config
+        if: contains(toJson(github.event.issue.labels), 'remove admin config')
+        uses: .github/workflows/remove_admin_config.yaml
+        with:
+          issue_number: ${{ github.event.issue.number }}
 
-          if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"add admin config"'; then
-            echo "Triggering add admin config workflow..."
-            gh workflow run add_admin_config.yaml -f issue_number=${{ github.event.issue.number }}
-          fi
+      - name: Dispatch request1 workflow if label matches add memory config
+        if: contains(toJson(github.event.issue.labels), 'add memory config')
+        uses: .github/workflows/add_memory_config.yaml
+        with:
+          issue_number: ${{ github.event.issue.number }}
 
-          if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"remove admin config"'; then
-            echo "Triggering remove admin config workflow..."
-            gh workflow run remove_admin_config.yaml -f issue_number=${{ github.event.issue.number }}
-          fi
-
-          if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"add memory config"'; then
-            echo "Triggering add memory config workflow..."
-            gh workflow run add_memory_config.yaml -f issue_number=${{ github.event.issue.number }}
-          fi
-
-          if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"remove memory config"'; then
-            echo "Triggering remove memory config workflow..."
-            gh workflow run remove_memory_config.yaml -f issue_number=${{ github.event.issue.number }}
-          fi
-
-          echo "Dispatch complete."
+      - name: Dispatch request1 workflow if label matches remove memory config
+        if: contains(toJson(github.event.issue.labels), 'remove memory config')
+        uses: .github/workflows/remove_memory_config.yaml
+        with:
+          issue_number: ${{ github.event.issue.number }}
+      
