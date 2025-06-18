@@ -26,27 +26,27 @@ jobs:
           
           if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"data retrieval"'; then
             echo "Triggering data retrieval workflow..."
-            gh workflow run data_archival_request.yml -f issue_number=${{ github.event.issue.number }}
+            gh workflow run data_archival_request.yaml -f issue_number=${{ github.event.issue.number }}
           fi
 
           if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"add admin config"'; then
             echo "Triggering add admin config workflow..."
-            gh workflow run add_admin_config_request.yml -f issue_number=${{ github.event.issue.number }}
+            gh workflow run add_admin_config_request.yaml -f issue_number=${{ github.event.issue.number }}
           fi
 
           if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"remove admin config"'; then
             echo "Triggering remove admin config workflow..."
-            gh workflow run remove_admin_config_request.yml -f issue_number=${{ github.event.issue.number }}
+            gh workflow run remove_admin_config_request.yaml -f issue_number=${{ github.event.issue.number }}
           fi
 
           if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"add memory config"'; then
             echo "Triggering add memory config workflow..."
-            gh workflow run add_memory_config_request.yml -f issue_number=${{ github.event.issue.number }}
+            gh workflow run add_memory_config_request.yaml -f issue_number=${{ github.event.issue.number }}
           fi
 
           if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"remove memory config"'; then
             echo "Triggering remove memory config workflow..."
-            gh workflow run remove_memory_config_request.yml -f issue_number=${{ github.event.issue.number }}
+            gh workflow run remove_memory_config_request.yaml -f issue_number=${{ github.event.issue.number }}
           fi
 
           echo "Dispatch complete."
