@@ -1,4 +1,4 @@
-name: Issue Created and Label Found
+name: Data Retrieval Request Workflow
 
 on:
   workflow_call:
