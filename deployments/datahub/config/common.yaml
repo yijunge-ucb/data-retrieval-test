@@ -51,6 +51,15 @@ jupyterhub:
           - course::1541622::enrollment_type::ta
 
 
+      course-staff-0000000:
+        description: Enable course staff to view and access servers.
+        scopes:
+          - admin-ui
+          - list:users!group=course::0000000
+          - admin:servers!group=course::0000000
+          - access:servers!group=course::0000000
+        groups:
+          - course::0000000::group::Admins
     nodeSelector:
       hub.jupyter.org/pool-name: core-pool-2024-05-08
     initContainers:
