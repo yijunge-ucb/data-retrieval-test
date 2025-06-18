@@ -20,6 +20,7 @@ body:
     attributes:
       label: bCourses ID(s)
       description: bCourses ID(s) in a given hub. If you want to remove configs for multiple courses in a given hub, please separate the IDs with commas (e.g., 1234567, 2345678). 
+    validations:
       required: true
   - type: dropdown
     id: hub_url
