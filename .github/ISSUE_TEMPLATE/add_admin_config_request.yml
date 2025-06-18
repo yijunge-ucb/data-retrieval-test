@@ -1,9 +1,8 @@
 name: Request Elevated Privileges for Course Staff
 description: Enable course staff to manage student servers
 title: "Request Elevated Privileges for Course Staff"
-labels: ["support", "admin request"]
-assignees: 
-  - yijunge-ucb
+labels: ["support", "add admin config"]
+assignees: []
 
 body:
   - type: markdown
@@ -25,8 +24,8 @@ body:
   - type: input
     id: courses_id
     attributes:
-      label: bCourses ID
-      description: bCourses ID for the course you are teaching. You can find that in the URL to your course -- it is a seven digit number. The course needs to be set to Published in bCourses, otherwise the hub will not be able to assign extra privileges.
+      label: bCourses ID(s)
+      description: bCourses ID for the course you are teaching. You can find that in the URL to your course -- it is a seven digit number. The course needs to be set to Published in bCourses, otherwise the hub will not be able to assign extra privileges. If you have multiple courses in the same hub, please separate the IDs with commas (e.g., 1234567, 2345678).
     validations:
       required: true
   - type: input

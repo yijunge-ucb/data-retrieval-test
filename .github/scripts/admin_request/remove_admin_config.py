@@ -2,8 +2,7 @@ import os
 import re
 from pathlib import Path
 
-
-def insert_role_at_end_of_loadroles(yaml_path: Path, course_id: str):
+def remove_role_from_loadroles(yaml_path: Path, course_id: str):
     role_key = f"course-staff-{course_id}"
 
     with yaml_path.open("r") as f:
@@ -14,9 +13,9 @@ def insert_role_at_end_of_loadroles(yaml_path: Path, course_id: str):
     loadroles_indent = None
 
     loadroles_start = None
-    insert_pos = None
+    loadroles_end = None
 
-    # Find loadRoles and its indent
+    # Find loadRoles and its indentation
     for i, line in enumerate(lines):
         stripped = line.lstrip()
         indent = len(line) - len(stripped)
@@ -40,53 +39,60 @@ def insert_role_at_end_of_loadroles(yaml_path: Path, course_id: str):
                     continue
 
     if loadroles_start is None:
-        raise ValueError("Could not find the jupyterhub -> hub -> loadRoles section.")
+        print("No loadRoles section found. Nothing removed.")
+        return
 
-    # Find the first line after loadRoles where indentation == loadroles_indent (sibling key)
+    # Find loadRoles block end: first line with indent == loadroles_indent after loadroles_start, or EOF
     for j in range(loadroles_start + 1, len(lines)):
         line = lines[j]
         stripped = line.lstrip()
         indent = len(line) - len(stripped)
 
         if indent == loadroles_indent and stripped:
-            insert_pos = j
+            loadroles_end = j
             break
+    else:
+        loadroles_end = len(lines)
 
-    # If not found, insert at EOF
-    if insert_pos is None:
-        insert_pos = len(lines)
+    # Role keys are indented 2 spaces more than loadRoles
+    role_indent = loadroles_indent + 2
 
-    # Check if role already exists inside loadRoles block (between loadroles_start+1 and insert_pos)
-    for k in range(loadroles_start + 1, insert_pos):
-        if lines[k].lstrip().startswith(role_key + ":"):
-            print(f"Role '{role_key}' already exists. Skipping insertion.")
-            return
+    remove_start = None
+    remove_end = None
 
-    # Prepare role block lines with correct indentation
-    entry_indent = loadroles_indent + 2
-    subentry_indent = entry_indent + 2
+    i = loadroles_start + 1
+    while i < loadroles_end:
+        line = lines[i]
+        stripped = line.lstrip()
+        indent = len(line) - len(stripped)
 
-    role_block = [
-        " " * entry_indent + f"{role_key}:\n",
-        " " * subentry_indent + "description: Enable course staff to view and access servers.\n",
-        " " * subentry_indent + "scopes:\n",
-        " " * (subentry_indent + 2) + "- admin-ui\n",
-        " " * (subentry_indent + 2) + f"- list:users!group=course::{course_id}\n",
-        " " * (subentry_indent + 2) + f"- admin:servers!group=course::{course_id}\n",
-        " " * (subentry_indent + 2) + f"- access:servers!group=course::{course_id}\n",
-        " " * subentry_indent + "groups:\n",
-        " " * (subentry_indent + 2) + f"- course::{course_id}::group::Admins\n",
-    ]
+        if indent == role_indent and stripped.startswith(role_key + ":"):
+            remove_start = i
+            # Find end of this role block: next line with indent <= role_indent or EOF
+            remove_end = i + 1
+            while remove_end < loadroles_end:
+                next_line = lines[remove_end]
+                next_stripped = next_line.lstrip()
+                next_indent = len(next_line) - len(next_stripped)
 
-    # Insert the role block before the found line
-    lines = lines[:insert_pos] + role_block + lines[insert_pos:]
+                if next_indent <= role_indent and next_stripped:
+                    break
+                remove_end += 1
+            break
+        i += 1
 
+    if remove_start is None:
+        print(f"Role '{role_key}' not found under loadRoles. Nothing removed.")
+        return
+
+    # Delete the role block lines
+    del lines[remove_start:remove_end]
+
+    # Write back
     with yaml_path.open("w") as f:
         f.writelines(lines)
 
-    print(f"Inserted role '{role_key}' before line {insert_pos}, preserving indentation.")
-
-
+    print(f"Removed role '{role_key}' from loadRoles.")
 
 
 def main():
@@ -105,7 +111,7 @@ def main():
     
     for c_id in re.split(r"[,\s:;]+", course_id):
         if c_id:  # skip empty strings
-            insert_role_at_end_of_loadroles(yaml_path, c_id)
+            remove_role_from_loadroles(yaml_path, c_id)
 
 if __name__ == "__main__":
     main()

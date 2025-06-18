@@ -25,7 +25,7 @@ def extract_issue_fields(issue_body: str):
             data[current_field] = line
 
     hub_url = data.get("Hub URL", "").strip()
-    course_id = data.get("bCourses ID", "").strip()
+    course_id = data.get("bCourses ID(s)", "").strip()
     end_date = data.get("End Date", "").strip()
 
     return {
