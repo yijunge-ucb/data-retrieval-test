@@ -1,4 +1,3 @@
-
 name: Dispatcher Workflow
 
 on:
@@ -11,40 +10,32 @@ permissions:
   issues: read
 
 jobs:
-  dispatch:
-    runs-on: ubuntu-latest
+  dispatch-data-retrieval:
+    if: contains(toJson(github.event.issue.labels), 'data retrieval')
+    uses: ./data-retrieval.yaml
+    with:
+      issue_number: ${{ github.event.issue.number }}
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      
-      - name: Dispatch request1 workflow if label matches data retrieval
-        if: contains(toJson(github.event.issue.labels), 'data retrieval')
-        uses: ./data-retrieval.yaml
-        with:
-          issue_number: ${{ github.event.issue.number }}
-      
-      - name: Dispatch request1 workflow if label matches add admin config
-        if: contains(toJson(github.event.issue.labels), 'add admin config')
-        uses: ./add_admin_config.yaml
-        with:
-          issue_number: ${{ github.event.issue.number }}
-      
-      - name: Dispatch request1 workflow if label matches remove admin config
-        if: contains(toJson(github.event.issue.labels), 'remove admin config')
-        uses: ./remove_admin_config.yaml
-        with:
-          issue_number: ${{ github.event.issue.number }}
+  dispatch-add-admin-config:
+    if: contains(toJson(github.event.issue.labels), 'add admin config')
+    uses: ./add_admin_config.yaml
+    with:
+      issue_number: ${{ github.event.issue.number }}
 
-      - name: Dispatch request1 workflow if label matches add memory config
-        if: contains(toJson(github.event.issue.labels), 'add memory config')
-        uses: ./add_memory_config.yaml
-        with:
-          issue_number: ${{ github.event.issue.number }}
+  dispatch-remove-admin-config:
+    if: contains(toJson(github.event.issue.labels), 'remove admin config')
+    uses: ./remove_admin_config.yaml
+    with:
+      issue_number: ${{ github.event.issue.number }}
 
-      - name: Dispatch request1 workflow if label matches remove memory config
-        if: contains(toJson(github.event.issue.labels), 'remove memory config')
-        uses: ./remove_memory_config.yaml
-        with:
-          issue_number: ${{ github.event.issue.number }}
-      
+  dispatch-add-memory-config:
+    if: contains(toJson(github.event.issue.labels), 'add memory config')
+    uses: ./add_memory_config.yaml
+    with:
+      issue_number: ${{ github.event.issue.number }}
+
+  dispatch-remove-memory-config:
+    if: contains(toJson(github.event.issue.labels), 'remove memory config')
+    uses: ./remove_memory_config.yaml
+    with:
+      issue_number: ${{ github.event.issue.number }}
