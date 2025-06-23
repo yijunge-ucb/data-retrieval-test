@@ -132,7 +132,7 @@ def insert_or_update_group_profile(yaml_path: Path, course_id: str, memory_reque
             elif stripped.startswith("mem_guarantee:"):
                 updated_block.append(" " * sub_indent + mem_guarantee_line)
                 inserted_mem_guarantee = True
-            else:
+            elif stripped != '':
                 updated_block.append(lines[i])
 
         if not inserted_mem_limit:
@@ -169,7 +169,7 @@ def main():
         raise ValueError("Missing required environment variables: hub_name, course_id, and memory_requested")
 
     # Path to the YAML config
-    yaml_path = Path(f"deployments/{hub_name}/config/common.yaml")
+    yaml_path = Path(f"../../../deployments/{hub_name}/config/common.yaml")
 
     if not yaml_path.exists():
         raise FileNotFoundError(f"Config file not found: {yaml_path}")

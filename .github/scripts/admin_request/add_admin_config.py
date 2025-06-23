@@ -13,56 +13,66 @@ def insert_role_at_end_of_loadroles(yaml_path: Path, course_id: str):
     hub_indent = None
     loadroles_indent = None
 
+    jupyterhub_start = None
+    hub_start = None
     loadroles_start = None
     insert_pos = None
 
-    # Find loadRoles and its indent
+    # First pass: Find the sections and their indentations
     for i, line in enumerate(lines):
         stripped = line.lstrip()
         indent = len(line) - len(stripped)
 
-        if stripped.startswith("jupyterhub:") and (jupyterhub_indent is None or indent < jupyterhub_indent):
+        if stripped.startswith("jupyterhub:"):
             jupyterhub_indent = indent
+            jupyterhub_start = i
             hub_indent = None
             loadroles_indent = None
             continue
 
         if jupyterhub_indent is not None and indent > jupyterhub_indent:
-            if stripped.startswith("hub:") and (hub_indent is None or indent < hub_indent):
+            if stripped.startswith("hub:"):
                 hub_indent = indent
+                hub_start = i
                 loadroles_indent = None
                 continue
 
             if hub_indent is not None and indent > hub_indent:
-                if stripped.startswith("loadRoles:") and (loadroles_indent is None or indent < loadroles_indent):
+                if stripped.startswith("loadRoles:"):
                     loadroles_indent = indent
                     loadroles_start = i
                     continue
 
+    # If loadRoles doesn't exist, insert it
     if loadroles_start is None:
-        raise ValueError("Could not find the jupyterhub -> hub -> loadRoles section.")
+        if hub_start is None:
+            raise ValueError("Could not find the jupyterhub -> hub section.")
 
-    # Find the first line after loadRoles where indentation == loadroles_indent (sibling key)
+        # Insert loadRoles block after the hub: line
+        loadroles_indent = hub_indent + 2
+        loadroles_start = hub_start + 1
+        lines.insert(loadroles_start, " " * loadroles_indent + "loadRoles:\n")
+
+    # Find the first line after loadRoles with indentation <= loadRoles (next sibling or end)
     for j in range(loadroles_start + 1, len(lines)):
         line = lines[j]
         stripped = line.lstrip()
         indent = len(line) - len(stripped)
 
-        if indent == loadroles_indent and stripped:
+        if stripped and indent <= loadroles_indent:
             insert_pos = j
             break
 
-    # If not found, insert at EOF
     if insert_pos is None:
         insert_pos = len(lines)
 
-    # Check if role already exists inside loadRoles block (between loadroles_start+1 and insert_pos)
+    # Check if role already exists in the loadRoles block
     for k in range(loadroles_start + 1, insert_pos):
         if lines[k].lstrip().startswith(role_key + ":"):
             print(f"Role '{role_key}' already exists. Skipping insertion.")
             return
 
-    # Prepare role block lines with correct indentation
+    # Prepare role block lines
     entry_indent = loadroles_indent + 2
     subentry_indent = entry_indent + 2
 
@@ -78,15 +88,13 @@ def insert_role_at_end_of_loadroles(yaml_path: Path, course_id: str):
         " " * (subentry_indent + 2) + f"- course::{course_id}::group::Admins\n",
     ]
 
-    # Insert the role block before the found line
+    # Insert the new role before the next sibling
     lines = lines[:insert_pos] + role_block + lines[insert_pos:]
 
     with yaml_path.open("w") as f:
         f.writelines(lines)
 
     print(f"Inserted role '{role_key}' before line {insert_pos}, preserving indentation.")
-
-
 
 
 def main():

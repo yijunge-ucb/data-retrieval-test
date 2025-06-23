@@ -13,6 +13,7 @@ def remove_group_profile(yaml_path: Path, course_id: str):
     jupyterhub_start = None
     jupyterhub_end = None
     custom_start = None
+    custom_end = None
     group_profiles_start = None
     group_profiles_end = None
 
@@ -46,9 +47,17 @@ def remove_group_profile(yaml_path: Path, course_id: str):
         print("No 'custom:' block found under 'jupyterhub:'")
         return
 
+    for i in range(custom_start + 1, jupyterhub_end):
+        indent = len(lines[i]) - len(lines[i].lstrip())
+        if lines[i].strip() and indent <= custom_indent:
+            custom_end = i
+            break
+    else:
+        custom_end = jupyterhub_end
+
     # Step 3: Find group_profiles:
     group_profiles_indent = custom_indent + 2
-    for i in range(custom_start + 1, jupyterhub_end):
+    for i in range(custom_start + 1, custom_end):
         if lines[i].lstrip().startswith("group_profiles:"):
             group_profiles_start = i
             break
@@ -57,13 +66,13 @@ def remove_group_profile(yaml_path: Path, course_id: str):
         print("No 'group_profiles:' block found under 'custom:'")
         return
 
-    for i in range(group_profiles_start + 1, len(lines)):
+    for i in range(group_profiles_start + 1, custom_end):
         indent = len(lines[i]) - len(lines[i].lstrip())
         if lines[i].strip() and indent <= group_profiles_indent:
             group_profiles_end = i
             break
     else:
-        group_profiles_end = len(lines)
+        group_profiles_end = custom_end
 
     # Step 4: Find course block
     group_indent = group_profiles_indent + 2
@@ -85,12 +94,59 @@ def remove_group_profile(yaml_path: Path, course_id: str):
         print(f"No block found for course::{course_id}")
         return
 
-    # Step 5: Remove the block
-    lines = lines[:found_course_start] + lines[found_course_end:]
+    # Step 5: Decide what to remove
+    mem_lines = []
+    other_lines_exist = False
+    for i in range(found_course_start + 1, found_course_end):
+        line_stripped = lines[i].lstrip()
+        if line_stripped.startswith("mem_limit:") or line_stripped.startswith("mem_guarantee:"):
+            mem_lines.append(i)
+        elif line_stripped and not line_stripped.startswith("#"):
+            other_lines_exist = True
+
+    if not other_lines_exist:
+        # Remove the entire course block
+        lines = lines[:found_course_start] + lines[found_course_end:]
+        group_profiles_end -= (found_course_end - found_course_start)
+        print(f"Removed entire group profile block for course::{course_id}")
+    else:
+        # Just remove mem_limit and mem_guarantee
+        lines = (
+            lines[:found_course_start + 1] +
+            [lines[i] for i in range(found_course_start + 1, found_course_end)
+             if not lines[i].lstrip().startswith("mem_limit:")
+             and not lines[i].lstrip().startswith("mem_guarantee:")] +
+            lines[found_course_end:]
+        )
+        group_profiles_end -= len(mem_lines)
+        print(f"Removed 'mem_limit' and 'mem_guarantee' from course::{course_id} group profile")
+
+    # Step 6: Check if group_profiles block is now empty
+    def is_block_empty(start, end, min_indent):
+        for i in range(start + 1, min(end, len(lines))):
+            stripped = lines[i].strip()
+            indent = len(lines[i]) - len(stripped)
+            if stripped and indent > min_indent and not stripped.startswith("#"):
+                return False
+            if stripped and indent <= min_indent:
+                break
+        return True
+
+    if is_block_empty(group_profiles_start, len(lines), group_profiles_indent):
+        print("Removed empty 'group_profiles:' block")
+        lines = lines[:group_profiles_start] + lines[group_profiles_end:]
+        custom_end -= (group_profiles_end - group_profiles_start)
+
+    # Step 7: Check if custom block is now empty
+    if is_block_empty(custom_start, len(lines), custom_indent):
+        print("Removed empty 'custom:' block")
+        lines = lines[:custom_start] + lines[custom_end:]
+
+    # Write final result
     with yaml_path.open("w") as f:
         f.writelines(lines)
 
-    print(f"Removed group profile block for course::{course_id}")
+
 
 
 def main():
@@ -102,7 +158,7 @@ def main():
         raise ValueError("Missing required environment variables: hub_name, course_id")
 
     # Path to the YAML config
-    yaml_path = Path(f"deployments/{hub_name}/config/common.yaml")
+    yaml_path = Path(f"../../../deployments/{hub_name}/config/common.yaml")
 
     if not yaml_path.exists():
         raise FileNotFoundError(f"Config file not found: {yaml_path}")
