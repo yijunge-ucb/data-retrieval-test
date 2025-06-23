@@ -68,7 +68,7 @@ def insert_role_at_end_of_loadroles(yaml_path: Path, course_id: str):
 
     # Check if role already exists in the loadRoles block
     for k in range(loadroles_start + 1, insert_pos):
-        if lines[k].lstrip().startswith(role_key + ":"):
+        if lines[k].lstrip() == role_key + ":":
             print(f"Role '{role_key}' already exists. Skipping insertion.")
             return
 

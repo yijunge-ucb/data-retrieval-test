@@ -66,7 +66,7 @@ def remove_role_from_loadroles(yaml_path: Path, course_id: str):
         stripped = line.lstrip()
         indent = len(line) - len(stripped)
 
-        if indent == role_indent and stripped.startswith(role_key + ":"):
+        if indent == role_indent and stripped == role_key + ":":
             remove_start = i
             remove_end = i + 1
             while remove_end < loadroles_end:

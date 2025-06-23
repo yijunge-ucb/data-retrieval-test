@@ -40,3 +40,15 @@ jobs:
     uses: ./.github/workflows/remove_memory_config.yaml
     with:
       issue_number: ${{ github.event.issue.number }}
+
+  dispatch-add-shared-directories:
+    if: contains(toJson(github.event.issue.labels), 'add shared directories')
+    uses: ./.github/workflows/add_shared_directories.yaml
+    with:
+      issue_number: ${{ github.event.issue.number }}
+  
+  dispatch-remove-shared-directories:
+    if: contains(toJson(github.event.issue.labels), 'remove shared directories')
+    uses: ./.github/workflows/remove_shared_directories.yaml
+    with:
+      issue_number: ${{ github.event.issue.number }}

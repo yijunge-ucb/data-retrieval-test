@@ -109,7 +109,7 @@ def insert_or_update_group_profile(yaml_path: Path, course_id: str, memory_reque
     found_course_end = None
 
     for i in range(group_profiles_start + 1, group_profiles_end):
-        if lines[i].lstrip().startswith(course_key):
+        if lines[i].lstrip() == course_key:
             found_course_start = i
             j = i + 1
             while j < group_profiles_end:
@@ -169,7 +169,7 @@ def main():
         raise ValueError("Missing required environment variables: hub_name, course_id, and memory_requested")
 
     # Path to the YAML config
-    yaml_path = Path(f"../../../deployments/{hub_name}/config/common.yaml")
+    yaml_path = Path(f"deployments/{hub_name}/config/common.yaml")
 
     if not yaml_path.exists():
         raise FileNotFoundError(f"Config file not found: {yaml_path}")
