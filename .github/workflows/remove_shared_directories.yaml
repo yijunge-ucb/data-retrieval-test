@@ -1,4 +1,4 @@
-name: Remove Admin Configs at the End of the Course and Create a PR
+name: Remove Shared directory Configs at the End of the Course and Create a PR
 
 on:
   workflow_call:
@@ -20,17 +20,17 @@ jobs:
       label_found: ${{ steps.check_label.outputs.label_found }}
 
     steps:
-      - name: Check if "remove admin config" label is present
+      - name: Check if "remove shared directories" label is present
         id: check_label
         run: |
           echo "Labels: ${{ toJson(github.event.issue.labels) }}"
     
-          if [[ "${{ contains(github.event.issue.labels.*.name, 'remove admin config') }}" == "true" ]]; then
-            echo "Label 'remove admin config' found. Proceeding..."
+          if [[ "${{ contains(github.event.issue.labels.*.name, 'remove shared directories') }}" == "true" ]]; then
+            echo "Label 'remove shared directories' found. Proceeding..."
             echo "label_found=true" >> $GITHUB_ENV
             echo "label_found=true" >> $GITHUB_OUTPUT
           else
-            echo "Label 'remove admin config' not found. Exiting..."
+            echo "Label 'remove shared directories' not found. Exiting..."
             echo "label_found=false" >> $GITHUB_ENV
             echo "label_found=false" >> $GITHUB_OUTPUT
           fi
@@ -68,13 +68,13 @@ jobs:
         git config user.email "github-actions@github.com"
         git checkout -b "${{ steps.extract_course_info.outputs.new_branch }}"
 
-        python3 .github/scripts/admin_request/remove_admin_config.py 
+        python3 .github/scripts/shared_directories/remove_shared_directories.py 
         FILE_PATH="deployments/${{ steps.extract_course_info.outputs.hub_name }}/config/common.yaml"
 
         if ! git diff --quiet "$FILE_PATH"; then
           echo "Changes detected in $FILE_PATH. Committing..."
           git add "$FILE_PATH"
-          git commit -m "Remove admin config for ${{ steps.extract_course_info.outputs.course_id }} to $FILE_PATH"
+          git commit -m "Remove shared directories config for ${{ steps.extract_course_info.outputs.course_id }} to $FILE_PATH"
           git push origin "${{ steps.extract_course_info.outputs.new_branch }}"
           echo "changed=true" >> "$GITHUB_OUTPUT"
         else
@@ -97,7 +97,7 @@ jobs:
       run: |
         # Set reviewers (GitHub usernames)
         REVIEWERS="yijunge-ucb"
-        LABELS="remove admin config,support"
+        LABELS="remove shared directories,support"
 
         # Check if PR already exists
         if gh pr list --base main --head "$BRANCH_NAME" --json number | grep -q '"number":'; then
