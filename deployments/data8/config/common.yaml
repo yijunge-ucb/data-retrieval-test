@@ -13,6 +13,24 @@ jupyterhub:
           - name: home
             mountPath: /srv/homes
 
+      course::1111111::enrollment_type::teacher:
+        extraVolumeMounts:
+          - name: home
+            mountPath: /home/jovyan/_shared/bcourses-1111111-readwrite
+            subPath: _shared/2025-summer/courses/1111111
+            readOnly: false
+      course::1111111::enrollment_type::ta:
+        extraVolumeMounts:
+          - name: home
+            mountPath: /home/jovyan/_shared/bcourses-1111111-readwrite
+            subPath: _shared/2025-summer/courses/1111111
+            readOnly: false
+      course::1111111::enrollment_type::student:
+        extraVolumeMounts:
+          - name: home
+            mountPath: /home/jovyan/_shared/bcourses-1111111-readonly
+            subPath: _shared/2025-summer/courses/1111111
+            readOnly: true
   scheduling:
     userScheduler:
       nodeSelector:
