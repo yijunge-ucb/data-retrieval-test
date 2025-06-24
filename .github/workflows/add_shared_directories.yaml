@@ -64,7 +64,7 @@ jobs:
     - name: Authenticate with GCP
       uses: google-github-actions/auth@v2
       with:
-        credentials_json: '${{ secrets.NFS_SSH_KEY }}'
+        credentials_json: ${{ secrets.NFS_SA_KEY }}
 
     - name: Set up gcloud CLI
       uses: google-github-actions/setup-gcloud@v2
