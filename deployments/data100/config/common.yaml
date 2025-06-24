@@ -42,6 +42,14 @@ jupyterhub:
         groups:
           - course::1524699::group::all-admins
 
+  custom:
+    group_profiles:
+      course::0000000:
+        mem_limit: 5G
+        mem_guarantee: 5G
+      course::1111111:
+        mem_limit: 5G
+        mem_guarantee: 5G
 # This configuration block is used to enable elevated privileges for teachers and TAs in Data100 hub
        #Data 100, Semester/Year, https://github.com/berkeley-dsep-infra/datahub/issues/6458
       #course-staff-1537664:
