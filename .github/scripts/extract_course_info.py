@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+from datetime import datetime
 
 def read_issue_body(path):
     with open(path, "r", encoding="utf-8") as f:
