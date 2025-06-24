@@ -60,6 +60,25 @@ jobs:
         python3 .github/scripts/extract_course_info.py  issue_body.txt
       env:
         ISSUE_NUMBER: ${{ github.event.issue.number }}
+    
+    - name: Authenticate with GCP
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: '${{ secrets.NFS_SSH_KEY }}'
+
+    - name: Set up gcloud CLI
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+      
+    - name: Create directory on Filestore and set permissions
+      run: |
+        TARGET_DIR="${{ steps.extract_course_info.outputs.filestore_path }}/_shared/${{ steps.extract_course_info.outputs.semester }}/courses/${{ steps.extract_course_info.outputs.course_id }}"
+
+        gcloud compute ssh ${{ secrets.NFS_INSTANCE_NAME }} \
+          --zone=${{ secrets.GCP_ZONE }} \
+          --tunnel-through-iap \
+          --command="sudo su - ubuntu -c 'mkdir -p \"$TARGET_DIR\" && chown ubuntu:ubuntu \"$TARGET_DIR\" && chmod 755 \"$TARGET_DIR\"'"
 
     - name: Create new branch and modify config
       id: modify-config

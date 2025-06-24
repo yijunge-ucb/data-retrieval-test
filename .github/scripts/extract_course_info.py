@@ -5,7 +5,29 @@ import sys
 def read_issue_body(path):
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
-    
+
+
+def convert_date_to_semester():
+    """
+    The function uses the current date to determine the semester.
+    It returns a string in the format "YYYY-{spring/summer/fall}" representing the semester.
+    """
+
+    now = datetime.now()
+    year = now.year
+    month = now.month
+
+    if 1 <= month <= 4 or month == 12:
+        semester = "spring"
+    elif 5 <= month <= 7:
+        semester = "summer"
+    elif 8 <= month <= 11:
+        semester = "fall"
+    else:
+        semester = "unknown"
+    return f"{year}-{semester}"
+
+
 def extract_issue_fields(issue_body: str):
     lines = issue_body.splitlines()
     data = {}
@@ -37,6 +59,38 @@ def extract_issue_fields(issue_body: str):
     }
 
 
+def hub_to_filestore_mapping(hub_name: str) -> str:
+    """
+    Maps the hub name to the corresponding filestore path.
+    """
+    mapping = {
+        "datahub": "datahub-filestore",
+        "r.datahub": "datahub-filestore",
+        "a11y": "small-courses-filestore",
+        "astro": "small-courses-filestore",
+        "biology": "biology-filestore",
+        "cee": "small-courses-filestore",
+        "data100": "data100-filestore",
+        "data101": "data101-filestore",
+        "data102": "small-courses-filestore",
+        "data8": "data8-filestore",
+        "dlab": "small-courses-filestore",
+        "eecs": "eecs-filestore",
+        "ischool": "small-courses-filestore",
+        "julia": "small-courses-filestore",
+        "prob140": "small-courses-filestore",
+        "publichealth": "small-courses-filestore",
+        "stat159": "small-courses-filestore",
+        "stat20": "stat20-filestore",
+        "nature": "small-courses-filestore",
+        "dev": "small-courses-filestore",
+        "gradebook": "small-courses-filestore",
+        "highschool": "small-courses-filestore",
+        "logodev": "small-courses-filestore",
+    }
+    return mapping.get(hub_name, "")
+
+
 def main():
     issue_id = os.getenv("ISSUE_NUMBER")
     issue_file_path = sys.argv[1]
@@ -53,6 +107,10 @@ def main():
     hub_name = url.split(".")[0] 
     branch = f"issue_{issue_id}"
 
+    filestore = hub_to_filestore_mapping(hub_name)
+    filestore_path = f"/export/{filestore}/{hub_name}/prod"
+    semester = convert_date_to_semester()
+
 
     print(f"Extracted hub name: {hub_name}\n course ID: {course_id}")
     if end_date:
@@ -66,6 +124,8 @@ def main():
         "course_id": course_id,
         "end_date": end_date,
         "memory_requested": memory,
+        "filestore_path": filestore_path,
+        "semester": semester,
     }
 
     output_path = os.environ.get("GITHUB_OUTPUT")
