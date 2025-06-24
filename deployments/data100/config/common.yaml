@@ -42,6 +42,15 @@ jupyterhub:
         groups:
           - course::1524699::group::all-admins
 
+      course-staff-0000000:
+        description: Enable course staff to view and access servers.
+        scopes:
+          - admin-ui
+          - list:users!group=course::0000000
+          - admin:servers!group=course::0000000
+          - access:servers!group=course::0000000
+        groups:
+          - course::0000000::group::Admins
   custom:
     group_profiles:
       course::0000000:
