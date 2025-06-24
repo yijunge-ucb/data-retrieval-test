@@ -36,6 +36,15 @@ jupyterhub:
         groups:
           - course::1524699::group::all-admins
 
+      course-staff-1234567:
+        description: Enable course staff to view and access servers.
+        scopes:
+          - admin-ui
+          - list:users!group=course::1234567
+          - admin:servers!group=course::1234567
+          - access:servers!group=course::1234567
+        groups:
+          - course::1234567::group::Admins
    # Linguistics 243, Configs required till July 1, 2026, https://github.com/berkeley-dsep-infra/datahub/issues/6604
       course-staff-1541622:
       #  description: Enable course staff to view and access servers.
