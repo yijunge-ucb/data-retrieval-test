@@ -162,6 +162,9 @@ jupyterhub:
         mem_limit: 4096M
         mem_guarantee: 4096M
 
+      course::1111111:
+        mem_limit: 5G
+        mem_guarantee: 5G
 # This is a template for configuring shared directories in DataHub.
 # Replace placeholders with actual values applicable to the course.
 # Reference: https://github.com/berkeley-dsep-infra/datahub/issues/6901
