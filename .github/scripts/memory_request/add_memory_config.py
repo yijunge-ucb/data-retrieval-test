@@ -18,8 +18,9 @@ def convert_memory_to_interger(memory_str: str) -> int:
         return int(memory_str[:-1]) / 1024
     elif memory_str.endswith("Mi"):
         return int(memory_str[:-2]) / 1024 
-    else:
-        raise ValueError(f"Invalid memory format: {memory_str}")
+    else: ## if no unit is provided, use GB 
+        return int(memory_str)  # Assume GB if no unit is specified
+        
 
 
 def insert_or_update_group_profile(yaml_path: Path, course_id: str, memory_requested: str):
@@ -70,7 +71,7 @@ def insert_or_update_group_profile(yaml_path: Path, course_id: str, memory_reque
 
     if custom_start is None:
         # Insert custom: at the end of jupyterhub block
-        custom_start = jupyterhub_end
+        custom_start = jupyterhub_end + 1
         lines.insert(custom_start, " " * custom_indent + "custom:\n")
         jupyterhub_end += 1  # Adjust since we added a line
         print("Inserted 'custom:' block under 'jupyterhub:'")
@@ -109,7 +110,7 @@ def insert_or_update_group_profile(yaml_path: Path, course_id: str, memory_reque
     found_course_end = None
 
     for i in range(group_profiles_start + 1, group_profiles_end):
-        if lines[i].lstrip() == course_key:
+        if lines[i].strip() == course_key:
             found_course_start = i
             j = i + 1
             while j < group_profiles_end:

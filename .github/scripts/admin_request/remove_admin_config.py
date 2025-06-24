@@ -3,8 +3,10 @@ import re
 from pathlib import Path
 
 
+from pathlib import Path
+
 def remove_role_from_loadroles(yaml_path: Path, course_id: str):
-    role_key = f"course-staff-{course_id}"
+    role_key = f"course-staff-{course_id}:"
 
     with yaml_path.open("r") as f:
         lines = f.readlines()
@@ -19,6 +21,9 @@ def remove_role_from_loadroles(yaml_path: Path, course_id: str):
     # Locate jupyterhub -> hub -> loadRoles
     for i, line in enumerate(lines):
         stripped = line.lstrip()
+        if not stripped or stripped.startswith("#"):
+            continue  
+
         indent = len(line) - len(stripped)
 
         if stripped.startswith("jupyterhub:"):
@@ -43,13 +48,15 @@ def remove_role_from_loadroles(yaml_path: Path, course_id: str):
         print("No loadRoles section found. Nothing removed.")
         return
 
-    # Find the end of loadRoles block: first line after it with indent <= loadroles_indent
+    # Find the end of loadRoles block
     for j in range(loadroles_start + 1, len(lines)):
         line = lines[j]
         stripped = line.lstrip()
+        if not stripped or stripped.startswith("#"):
+            continue  
         indent = len(line) - len(stripped)
 
-        if stripped and indent <= loadroles_indent:
+        if indent <= loadroles_indent:
             loadroles_end = j
             break
     else:
@@ -59,25 +66,37 @@ def remove_role_from_loadroles(yaml_path: Path, course_id: str):
     remove_start = None
     remove_end = None
 
-    # Find role start and its block
+    # Find the role entry and its sub-block
     i = loadroles_start + 1
     while i < loadroles_end:
         line = lines[i]
         stripped = line.lstrip()
+
+        if not stripped or stripped.startswith("#"):
+            i += 1
+            continue  
+
         indent = len(line) - len(stripped)
 
-        if indent == role_indent and stripped == role_key + ":":
+        if indent == role_indent and stripped.rstrip() == role_key:
             remove_start = i
             remove_end = i + 1
+
             while remove_end < loadroles_end:
                 next_line = lines[remove_end]
                 next_stripped = next_line.lstrip()
+
+                if not next_stripped or next_stripped.startswith("#"):
+                    remove_end += 1
+                    continue  #  Ignore comments inside the block too
+
                 next_indent = len(next_line) - len(next_stripped)
 
-                if next_stripped and next_indent <= role_indent:
+                if next_indent <= role_indent:
                     break
                 remove_end += 1
             break
+
         i += 1
 
     if remove_start is None:
@@ -87,11 +106,12 @@ def remove_role_from_loadroles(yaml_path: Path, course_id: str):
     # Remove the role lines
     del lines[remove_start:remove_end]
 
-    # Write back the file
+    # Write back the updated file
     with yaml_path.open("w") as f:
         f.writelines(lines)
 
     print(f"Removed role '{role_key}' from loadRoles.")
+
 
 
 def main():

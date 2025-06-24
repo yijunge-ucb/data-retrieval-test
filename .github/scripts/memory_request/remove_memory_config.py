@@ -80,7 +80,7 @@ def remove_group_profile(yaml_path: Path, course_id: str):
     found_course_end = None
 
     for i in range(group_profiles_start + 1, group_profiles_end):
-        if lines[i].lstrip() == course_key:
+        if lines[i].strip() == course_key:
             found_course_start = i
             j = i + 1
             while j < group_profiles_end:

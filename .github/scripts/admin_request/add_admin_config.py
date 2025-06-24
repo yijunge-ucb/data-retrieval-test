@@ -3,8 +3,10 @@ import re
 from pathlib import Path
 
 
-def insert_role_at_end_of_loadroles(yaml_path: Path, course_id: str):
-    role_key = f"course-staff-{course_id}"
+from pathlib import Path
+
+def insert_role(yaml_path: Path, course_id: str):
+    role_key = f"course-staff-{course_id}:"
 
     with yaml_path.open("r") as f:
         lines = f.readlines()
@@ -16,11 +18,14 @@ def insert_role_at_end_of_loadroles(yaml_path: Path, course_id: str):
     jupyterhub_start = None
     hub_start = None
     loadroles_start = None
-    insert_pos = None
 
-    # First pass: Find the sections and their indentations
+    # First pass: Find the sections and their indentations, skipping comments
     for i, line in enumerate(lines):
         stripped = line.lstrip()
+
+        if not stripped or stripped.startswith("#"):
+            continue  # Skip comments or empty lines
+
         indent = len(line) - len(stripped)
 
         if stripped.startswith("jupyterhub:"):
@@ -53,22 +58,28 @@ def insert_role_at_end_of_loadroles(yaml_path: Path, course_id: str):
         loadroles_start = hub_start + 1
         lines.insert(loadroles_start, " " * loadroles_indent + "loadRoles:\n")
 
-    # Find the first line after loadRoles with indentation <= loadRoles (next sibling or end)
+    # Find the last line of the loadRoles block (ignoring comments)
+    insert_pos = loadroles_start + 1
     for j in range(loadroles_start + 1, len(lines)):
         line = lines[j]
         stripped = line.lstrip()
+
+        if not stripped or stripped.startswith("#"):
+            continue  # Skip comments or blank lines
+
         indent = len(line) - len(stripped)
 
-        if stripped and indent <= loadroles_indent:
-            insert_pos = j
+        if indent <= loadroles_indent:
             break
-
-    if insert_pos is None:
-        insert_pos = len(lines)
+        insert_pos = j + 1
 
     # Check if role already exists in the loadRoles block
     for k in range(loadroles_start + 1, insert_pos):
-        if lines[k].lstrip() == role_key + ":":
+        stripped = lines[k].strip()
+        if not stripped or stripped.startswith("#"):
+            continue  # Skip comments
+
+        if stripped == role_key:
             print(f"Role '{role_key}' already exists. Skipping insertion.")
             return
 
@@ -77,7 +88,8 @@ def insert_role_at_end_of_loadroles(yaml_path: Path, course_id: str):
     subentry_indent = entry_indent + 2
 
     role_block = [
-        " " * entry_indent + f"{role_key}:\n",
+        " " * entry_indent + f"{role_key}\n",
+        " " * subentry_indent + "## This is comment \n",
         " " * subentry_indent + "description: Enable course staff to view and access servers.\n",
         " " * subentry_indent + "scopes:\n",
         " " * (subentry_indent + 2) + "- admin-ui\n",
@@ -88,13 +100,14 @@ def insert_role_at_end_of_loadroles(yaml_path: Path, course_id: str):
         " " * (subentry_indent + 2) + f"- course::{course_id}::group::Admins\n",
     ]
 
-    # Insert the new role before the next sibling
+    # Insert the new role at the end of the loadRoles block
     lines = lines[:insert_pos] + role_block + lines[insert_pos:]
 
     with yaml_path.open("w") as f:
         f.writelines(lines)
 
-    print(f"Inserted role '{role_key}' before line {insert_pos}, preserving indentation.")
+    print(f"Inserted role '{role_key}' at the end of loadRoles block (line {insert_pos}).")
+
 
 
 def main():
@@ -113,7 +126,7 @@ def main():
     
     for c_id in re.split(r"[,\s:;]+", course_id):
         if c_id:  # skip empty strings
-            insert_role_at_end_of_loadroles(yaml_path, c_id)
+            insert_role(yaml_path, c_id)
 
 if __name__ == "__main__":
     main()

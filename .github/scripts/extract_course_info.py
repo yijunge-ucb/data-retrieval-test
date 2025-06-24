@@ -113,11 +113,11 @@ def main():
     semester = convert_date_to_semester()
 
 
-    print(f"Extracted hub name: {hub_name}\n course ID: {course_id}")
+    print(f"Hub Name: {hub_name}\nCourse ID: {course_id}")
     if end_date:
-        print(f"End date: {end_date} \n")
+        print(f"End Date: {end_date} \n")
     if memory:
-        print(f"Memory request: {memory} \n")
+        print(f"Memory Request: {memory} \n")
 
     outputs = {
         "new_branch": branch,
