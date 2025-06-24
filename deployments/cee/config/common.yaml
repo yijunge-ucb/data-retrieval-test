@@ -34,6 +34,15 @@ jupyterhub:
         groups:
           - course::1524699::group::all-admins
   singleuser:
+      course-staff-0000000:
+        description: Enable course staff to view and access servers.
+        scopes:
+          - admin-ui
+          - list:users!group=course::0000000
+          - admin:servers!group=course::0000000
+          - access:servers!group=course::0000000
+        groups:
+          - course::0000000::group::Admins
     extraFiles:
       # DH-216
       remove-exporters:
@@ -56,10 +65,4 @@ jupyterhub:
     memory:
       # Give them more resources as linux desktop is primary used here
       guarantee: 2G
-      limit: 4G   
-
-  custom:
-    group_profiles:
-      course::0000000:
-        mem_limit: 6G
-        mem_guarantee: 6G
+      limit: 4G
