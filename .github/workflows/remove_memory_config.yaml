@@ -98,7 +98,7 @@ jobs:
       run: |
         # Set reviewers (GitHub usernames)
         REVIEWERS="yijunge-ucb"
-        LABELS="remove memory config,datahub admin only"
+        LABELS="remove memory config,datahub admin only,hub: ${{ steps.extract_course_info.outputs.hub_name }}"
 
         # Check if PR already exists
         if gh pr list --base main --head "$BRANCH_NAME" --json number | grep -q '"number":'; then
