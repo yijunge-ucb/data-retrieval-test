@@ -60,6 +60,15 @@ jobs:
         python3 .github/scripts/extract_course_info.py  issue_body.txt
       env:
         ISSUE_NUMBER: ${{ github.event.issue.number }}
+   
+    - name: Check secret availability
+      run: |
+        if [ -z "${{ secrets.NFS_SA_KEY }}" ]; then
+          echo "Secret is NOT available"
+          exit 1
+        else
+          echo "Secret is available"
+        fi
     
     - name: Authenticate with GCP
       uses: google-github-actions/auth@v2
