@@ -20,8 +20,13 @@ def remove_group_profile(yaml_path: Path, course_id: str, course_name: str):
     group_profiles_start = None
     group_profiles_end = None
 
+    def is_comment_or_blank(line):
+        return not line.strip() or line.lstrip().startswith("#")
+
     # Step 1: Locate jupyterhub:
     for i, line in enumerate(lines):
+        if is_comment_or_blank(line):
+            continue
         if line.lstrip().startswith("jupyterhub:"):
             jupyterhub_start = i
             jupyterhub_indent = len(line) - len(line.lstrip())
@@ -33,11 +38,13 @@ def remove_group_profile(yaml_path: Path, course_id: str, course_name: str):
     # Step 2: Locate custom:
     for i in range(jupyterhub_start + 1, len(lines)):
         line = lines[i]
+        if is_comment_or_blank(line):
+            continue
         indent = len(line) - len(line.lstrip())
         if line.lstrip().startswith("custom:") and indent == custom_indent:
             custom_start = i
             break
-        if line.strip() and indent <= jupyterhub_indent:
+        if indent <= jupyterhub_indent:
             break
     if custom_start is None:
         print("No 'custom:' block found. Nothing to remove.")
@@ -46,11 +53,13 @@ def remove_group_profile(yaml_path: Path, course_id: str, course_name: str):
     # Step 3: Locate group_profiles:
     for i in range(custom_start + 1, len(lines)):
         line = lines[i]
+        if is_comment_or_blank(line):
+            continue
         indent = len(line) - len(line.lstrip())
         if line.lstrip().startswith("group_profiles:") and indent == group_profiles_indent:
             group_profiles_start = i
             break
-        if line.strip() and indent <= custom_indent:
+        if indent <= custom_indent:
             break
     if group_profiles_start is None:
         print("No 'group_profiles:' block found. Nothing to remove.")
@@ -58,8 +67,10 @@ def remove_group_profile(yaml_path: Path, course_id: str, course_name: str):
 
     # Step 4: Find end of group_profiles block
     for i in range(group_profiles_start + 1, len(lines)):
+        if is_comment_or_blank(lines[i]):
+            continue
         indent = len(lines[i]) - len(lines[i].lstrip())
-        if lines[i].strip() and indent <= group_profiles_indent:
+        if indent <= group_profiles_indent:
             group_profiles_end = i
             break
     else:
@@ -72,6 +83,11 @@ def remove_group_profile(yaml_path: Path, course_id: str, course_name: str):
 
     while i < group_profiles_end:
         line = lines[i]
+        if is_comment_or_blank(line):
+            remaining_lines.append(line)
+            i += 1
+            continue
+
         stripped = line.lstrip()
         indent = len(line) - len(stripped)
 
@@ -79,15 +95,17 @@ def remove_group_profile(yaml_path: Path, course_id: str, course_name: str):
             # Skip this block
             j = i + 1
             while j < group_profiles_end:
-                next_line = lines[j]
-                next_indent = len(next_line) - len(next_line.lstrip())
-                if next_line.strip() and next_indent <= course_indent:
+                if is_comment_or_blank(lines[j]):
+                    j += 1
+                    continue
+                next_indent = len(lines[j]) - len(lines[j].lstrip())
+                if next_indent <= course_indent:
                     break
                 j += 1
             i = j
             removed_any = True
         else:
-            remaining_lines.append(lines[i])
+            remaining_lines.append(line)
             i += 1
 
     if not removed_any:
@@ -97,27 +115,29 @@ def remove_group_profile(yaml_path: Path, course_id: str, course_name: str):
     # Step 6: Rebuild the file
     lines = lines[:group_profiles_start + 1] + remaining_lines + lines[group_profiles_end:]
 
-    # Step 7: Check if group_profiles is now empty
+    # Step 7: Check if group_profiles is now empty (ignoring comments)
     has_content = any(
-        line.strip() and (len(line) - len(line.lstrip())) > group_profiles_indent
+        not is_comment_or_blank(line) and (len(line) - len(line.lstrip())) > group_profiles_indent
         for line in remaining_lines
     )
     if not has_content:
         del lines[group_profiles_start]  # remove group_profiles:
         print("Removed empty 'group_profiles:' section.")
 
-        # Step 8: Check if custom is now empty
+        # Step 8: Check if custom is now empty (ignoring comments)
         custom_end = None
         for i in range(custom_start + 1, len(lines)):
+            if is_comment_or_blank(lines[i]):
+                continue
             indent = len(lines[i]) - len(lines[i].lstrip())
-            if lines[i].strip() and indent <= custom_indent:
+            if indent <= custom_indent:
                 custom_end = i
                 break
         else:
             custom_end = len(lines)
 
         custom_has_content = any(
-            len(line) - len(line.lstrip()) > custom_indent
+            not is_comment_or_blank(line) and (len(line) - len(line.lstrip())) > custom_indent
             for line in lines[custom_start + 1:custom_end]
         )
         if not custom_has_content:
@@ -132,6 +152,7 @@ def remove_group_profile(yaml_path: Path, course_id: str, course_name: str):
 
 
 
+
 def main():
     # Get environment variables
     hub_name = os.getenv("hub_name")
@@ -141,7 +162,7 @@ def main():
         raise ValueError("Missing required environment variables: hub_name and course_id")
 
     # Path to the YAML config
-    yaml_path = Path(f"deployments/{hub_name}/config/common.yaml")
+    yaml_path = Path(f"../../../deployments/{hub_name}/config/common.yaml")
 
     if not yaml_path.exists():
         raise FileNotFoundError(f"Config file not found: {yaml_path}")

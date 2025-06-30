@@ -33,8 +33,9 @@ jupyterhub:
         # this role will be assigned to...
         groups:
           - course::1524699::group::all-admins
-  singleuser:
       course-staff-0000000:
+        ## Course: econ100 Bcourses ID: 0000000 End Date: 08/01/2025 
+        ## See issue https://github.com/berkeley-dsep-infra/datahub/issues/27 for more details.
         description: Enable course staff to view and access servers.
         scopes:
           - admin-ui
@@ -43,6 +44,8 @@ jupyterhub:
           - access:servers!group=course::0000000
         groups:
           - course::0000000::group::Admins
+
+  singleuser:
     extraFiles:
       # DH-216
       remove-exporters:
@@ -65,4 +68,4 @@ jupyterhub:
     memory:
       # Give them more resources as linux desktop is primary used here
       guarantee: 2G
-      limit: 4G
+      limit: 4G    

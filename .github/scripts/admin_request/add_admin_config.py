@@ -5,11 +5,14 @@ from pathlib import Path
 
 from pathlib import Path
 
-def insert_role(yaml_path: Path, course_id: str):
+def insert_role(yaml_path: Path, course_id: str, issue_number: str, end_date: str, course_name: str):
     role_key = f"course-staff-{course_id}:"
 
     with yaml_path.open("r") as f:
         lines = f.readlines()
+
+    if lines and not lines[-1].endswith('\n'):
+        lines[-1] += '\n'
 
     jupyterhub_indent = None
     hub_indent = None
@@ -89,7 +92,8 @@ def insert_role(yaml_path: Path, course_id: str):
 
     role_block = [
         " " * entry_indent + f"{role_key}\n",
-        " " * subentry_indent + "## This is comment \n",
+        " " * subentry_indent + f"## Course: {course_name} Bcourses ID: {course_id} End Date: {end_date} \n",
+        " " * subentry_indent + f"## See issue https://github.com/berkeley-dsep-infra/datahub/issues/{issue_number} for more details.\n",
         " " * subentry_indent + "description: Enable course staff to view and access servers.\n",
         " " * subentry_indent + "scopes:\n",
         " " * (subentry_indent + 2) + "- admin-ui\n",
@@ -114,19 +118,22 @@ def main():
     # Get environment variables
     hub_name = os.getenv("hub_name")
     course_id = os.getenv("course_id")
+    issue_number = os.getenv("ISSUE_NUMBER")
+    end_date = os.getenv("end_date").strip()
+    course_name = os.getenv("course_name").strip()
 
-    if not hub_name or not course_id:
-        raise ValueError("Missing required environment variables: hub_name and course_id")
+    if not hub_name or not course_id or not issue_number or not course_name or not end_date:
+        raise ValueError("Missing required environment variables: hub_name, course_id, ISSUE_NUMBER, course_name, or end_date")
 
     # Path to the YAML config
-    yaml_path = Path(f"deployments/{hub_name}/config/common.yaml")
+    yaml_path = Path(f"../../../deployments/{hub_name}/config/common.yaml")
 
     if not yaml_path.exists():
         raise FileNotFoundError(f"Config file not found: {yaml_path}")
     
     for c_id in re.split(r"[,\s:;]+", course_id):
         if c_id:  # skip empty strings
-            insert_role(yaml_path, c_id)
+            insert_role(yaml_path, c_id, issue_number, end_date, course_name)
 
 if __name__ == "__main__":
     main()

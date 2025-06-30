@@ -51,12 +51,15 @@ def extract_issue_fields(issue_body: str):
     course_id = data.get("bCourses ID(s)", "").strip()
     end_date = data.get("End Date", "").strip()
     memory = data.get("How much RAM per user is needed?", "").strip()
+    course_name = data.get("Affiliated Course Name", "").strip()
+    
 
     return {
         "hub_url": hub_url,
         "course_id": course_id,
         "end_date": end_date,
         "memory": memory,
+        "course_name": course_name,
     }
 
 
@@ -104,6 +107,7 @@ def main():
     course_id = course_info.get("course_id", "")        
     end_date = course_info.get("end_date", "")
     memory = course_info.get("memory", "")
+    course_name = course_info.get("course_name", "")
      
     hub_name = url.split(".")[0] 
     branch = f"issue_{issue_id}"
@@ -127,6 +131,7 @@ def main():
         "memory_requested": memory,
         "filestore_path": filestore_path,
         "semester": semester,
+        "course_name": course_name,
     }
 
     output_path = os.environ.get("GITHUB_OUTPUT")

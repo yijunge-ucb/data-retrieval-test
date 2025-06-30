@@ -28,6 +28,9 @@ def convert_date_to_semester():
 def insert_or_update_group_profile(yaml_path: Path, course_id: str, course_name: str):
     with yaml_path.open("r") as f:
         lines = f.readlines()
+    
+    if lines and not lines[-1].endswith('\n'):
+        lines[-1] += '\n'
 
     semester = convert_date_to_semester()
     course_key_prefix = f"course::{course_id}::enrollment_type::"
@@ -43,8 +46,13 @@ def insert_or_update_group_profile(yaml_path: Path, course_id: str, course_name:
     custom_start = None
     group_profiles_start = None
 
+    def is_comment_or_blank(line):
+        return not line.strip() or line.lstrip().startswith("#")
+
     # Step 1: Locate jupyterhub
     for i, line in enumerate(lines):
+        if is_comment_or_blank(line):
+            continue
         if line.lstrip().startswith("jupyterhub:"):
             jupyterhub_start = i
             jupyterhub_indent = len(line) - len(line.lstrip())
@@ -61,7 +69,7 @@ def insert_or_update_group_profile(yaml_path: Path, course_id: str, course_name:
     else:
         # Step 2: Find end of jupyterhub block
         for i in range(jupyterhub_start + 1, len(lines)):
-            if lines[i].strip() == "":
+            if is_comment_or_blank(lines[i]):
                 continue
             indent = len(lines[i]) - len(lines[i].lstrip())
             if indent <= jupyterhub_indent:
@@ -72,6 +80,8 @@ def insert_or_update_group_profile(yaml_path: Path, course_id: str, course_name:
 
         # Step 3: Find or insert custom:
         for i in range(jupyterhub_start + 1, jupyterhub_end):
+            if is_comment_or_blank(lines[i]):
+                continue
             if lines[i].lstrip().startswith("custom:") and \
                len(lines[i]) - len(lines[i].lstrip()) == custom_indent:
                 custom_start = i
@@ -84,6 +94,8 @@ def insert_or_update_group_profile(yaml_path: Path, course_id: str, course_name:
 
         # Step 4: Find or insert group_profiles:
         for i in range(custom_start + 1, jupyterhub_end):
+            if is_comment_or_blank(lines[i]):
+                continue
             if lines[i].lstrip().startswith("group_profiles:") and \
                len(lines[i]) - len(lines[i].lstrip()) == group_profiles_indent:
                 group_profiles_start = i
@@ -97,25 +109,35 @@ def insert_or_update_group_profile(yaml_path: Path, course_id: str, course_name:
     # Step 5: Remove old course block
     group_profiles_end = None
     for i in range(group_profiles_start + 1, len(lines)):
+        if is_comment_or_blank(lines[i]):
+            continue
         indent = len(lines[i]) - len(lines[i].lstrip())
-        if lines[i].strip() and indent <= group_profiles_indent:
+        if indent <= group_profiles_indent:
             group_profiles_end = i
             break
     else:
         group_profiles_end = len(lines)
 
-    # Remove existing block
+    # Remove existing course block
     new_group_lines = []
     i = group_profiles_start + 1
     while i < group_profiles_end:
         line = lines[i]
+        if is_comment_or_blank(line):
+            new_group_lines.append(line)
+            i += 1
+            continue
+
         stripped = line.lstrip()
         indent = len(line) - len(stripped)
         if indent == group_profiles_indent + 2 and stripped.startswith(course_key_prefix):
             j = i + 1
             while j < group_profiles_end:
+                if is_comment_or_blank(lines[j]):
+                    j += 1
+                    continue
                 next_indent = len(lines[j]) - len(lines[j].lstrip())
-                if lines[j].strip() and next_indent <= group_profiles_indent + 2:
+                if next_indent <= group_profiles_indent + 2:
                     break
                 j += 1
             i = j  # skip this course block
@@ -157,6 +179,7 @@ def insert_or_update_group_profile(yaml_path: Path, course_id: str, course_name:
     print(f"Inserted or updated group profile for course::{course_id}")
 
 
+
 def main():
     # Get environment variables
     hub_name = os.getenv("hub_name")
@@ -167,7 +190,7 @@ def main():
         raise ValueError("Missing required environment variables: hub_name and course_id")
 
     # Path to the YAML config
-    yaml_path = Path(f"deployments/{hub_name}/config/common.yaml")
+    yaml_path = Path(f"../../../deployments/{hub_name}/config/common.yaml")
 
     if not yaml_path.exists():
         raise FileNotFoundError(f"Config file not found: {yaml_path}")
