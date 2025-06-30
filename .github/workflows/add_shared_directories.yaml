@@ -110,8 +110,7 @@ jobs:
             --title "Automatic PR created: merge from $BRANCH_NAME to main" \
             --body "$PR_BODY" \
             --reviewer "$REVIEWERS" \
-            --label "$LABELS" \
-            --json url -q .url)
+            --label "$LABELS")
         fi
 
 
