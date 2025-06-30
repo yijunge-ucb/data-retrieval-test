@@ -84,6 +84,9 @@ jobs:
       env:
         hub_name: ${{ steps.extract_course_info.outputs.hub_name }}
         course_id: ${{ steps.extract_course_info.outputs.course_id }}
+        course_name: ${{ steps.extract_course_info.outputs.course_name }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        end_date: ${{ steps.extract_course_info.outputs.end_date }}
     
     - name: Authenticate gh CLI
       if: steps.modify-config.outputs.changed == 'true'

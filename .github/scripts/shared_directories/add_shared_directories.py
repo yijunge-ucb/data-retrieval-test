@@ -25,7 +25,7 @@ def convert_date_to_semester():
     return f"{year}-{semester}"
    
 
-def insert_or_update_group_profile(yaml_path: Path, course_id: str, course_name: str):
+def insert_or_update_group_profile(yaml_path: Path, course_id: str, course_name: str, end_date: str, issue_number: str):
     with yaml_path.open("r") as f:
         lines = f.readlines()
     
@@ -156,6 +156,8 @@ def insert_or_update_group_profile(yaml_path: Path, course_id: str, course_name:
         access = "readonly" if readonly else "readwrite"
         return [
             " " * ei + f"course::{course_id}::enrollment_type::{role}:\n",
+            " " * ei + f"## Course Name: {course_name} Bcourses ID: {course_id} End Date: {end_date}\n",
+            " " * ei + f"## See issue https://github.com/berkeley-dsep-infra/datahub/issues/{issue_number} for details.\n",
             " " * si + "extraVolumeMounts:\n",
             " " * ssi + "- name: home\n",
             " " * (ssi + 2) + f"mountPath: /home/jovyan/_shared/{course_name}-{access}\n",
@@ -184,10 +186,13 @@ def main():
     # Get environment variables
     hub_name = os.getenv("hub_name")
     course_id = os.getenv("course_id")
+    issue_number = os.getenv("ISSUE_NUMBER")
+    end_date = os.getenv("end_date").strip()
+    course_name = os.getenv("course_name").strip()
  
 
-    if not hub_name or not course_id:
-        raise ValueError("Missing required environment variables: hub_name and course_id")
+    if not hub_name or not course_id or not issue_number or not end_date or not course_name:
+        raise ValueError("Missing required environment variables: hub_name, course_id, ISSUE_NUMBER, end_date, or course_name")
 
     # Path to the YAML config
     yaml_path = Path(f"deployments/{hub_name}/config/common.yaml")
@@ -198,7 +203,7 @@ def main():
     for c_id in re.split(r"[,\s:;]+", course_id):
         if c_id:  # skip empty strings
             c_name = "bcourses-" + c_id.strip()
-            insert_or_update_group_profile(yaml_path, c_id, c_name)
+            insert_or_update_group_profile(yaml_path, c_id, c_name, course_name, end_date, issue_number)
             
 
 

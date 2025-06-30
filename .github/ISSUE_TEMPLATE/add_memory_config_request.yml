@@ -37,10 +37,9 @@ body:
       required: true
 
   - type: input
-    id: class-info
     attributes:
-      label: "Which class is this request for?"
-      description: "For example, \"2025 Spring, Robot Studies 101\"."
+      label: Affiliated Course Name
+      description: Name of the course for which you are part of the teaching team
     validations:
       required: true
 
@@ -102,10 +101,10 @@ body:
       required: true
 
   - type: input
-    id: end-date
+    id: end_date
     attributes:
-      label: "Until when (MM/DD/YYYY) do you require the additional RAM?"
-      description: "This will help us scale down resources when the RAM increase is no longer required"
+      label: End Date
+      description: "Until when (MM/DD/YYYY) do you require the additional RAM? This will help us scale down resources when the RAM increase is no longer required"
     validations:
       required: true
 
