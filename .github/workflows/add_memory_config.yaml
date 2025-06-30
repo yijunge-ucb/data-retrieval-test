@@ -107,14 +107,12 @@ jobs:
         if gh pr list --base main --head "$BRANCH_NAME" --json number | grep -q '"number":'; then
           echo "PR already exists. Skipping."
         else
-          # Create the pull request with a "Related to" link
+          PR_BODY=$(printf "Automatic PR created: merge from %s to main\n\nRelated to #%s" "$BRANCH_NAME" "$ISSUE_NUMBER")
           PR_URL=$(gh pr create \
             --base main \
             --head "$BRANCH_NAME" \
             --title "Automatic PR created: merge from $BRANCH_NAME to main" \
-            --body "Automatic PR created: merge from $BRANCH_NAME to main
-
-    Related to #$ISSUE_NUMBER" \
+            --body "$PR_BODY" \
             --reviewer "$REVIEWERS" \
             --label "$LABELS" \
             --json url -q .url)
