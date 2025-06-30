@@ -203,7 +203,7 @@ def main():
     for c_id in re.split(r"[,\s:;]+", course_id):
         if c_id:  # skip empty strings
             c_name = "bcourses-" + c_id.strip()
-            insert_or_update_group_profile(yaml_path, c_id, c_name, course_name, end_date, issue_number)
+            insert_or_update_group_profile(yaml_path, c_id, c_name, end_date, issue_number)
             
 
 
