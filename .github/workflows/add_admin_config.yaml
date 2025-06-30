@@ -74,7 +74,7 @@ jobs:
         if ! git diff --quiet "$FILE_PATH"; then
           echo "Changes detected in $FILE_PATH. Committing..."
           git add "$FILE_PATH"
-          git commit -m "Add admin config for ${{ steps.extract_course_info.outputs.course_id }} "
+          git commit -m "Add admin config for Bcourses ID: ${{ steps.extract_course_info.outputs.course_id }} "
           git push origin "${{ steps.extract_course_info.outputs.new_branch }}"
           echo "changed=true" >> "$GITHUB_OUTPUT"
         else
