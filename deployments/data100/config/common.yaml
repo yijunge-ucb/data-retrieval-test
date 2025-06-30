@@ -41,7 +41,6 @@ jupyterhub:
         # this role will be assigned to...
         groups:
           - course::1524699::group::all-admins
-
   custom:
     group_profiles:
       course::0000000:
