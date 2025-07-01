@@ -107,7 +107,6 @@ jobs:
           echo "PRIVATE_KEY_SECRET is set."
         fi
  
-
     - name: Authenticate gh CLI
       if: steps.modify-config.outputs.changed == 'true'
       run: echo "${{ secrets.MYPAT }}" | gh auth login --with-token
