@@ -7,8 +7,6 @@ on:
         required: true
         type: number
     secrets:
-      GITHUB_TOKEN: 
-        required: true
       DATA_RETRIEVAL_SA:
         required: true
       TOKEN_PICKLE: 

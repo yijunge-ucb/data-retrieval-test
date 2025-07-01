@@ -17,7 +17,6 @@ jobs:
     with:
       issue_number: ${{ github.event.issue.number }}
     secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       DATA_RETRIEVAL_SA: ${{ secrets.DATA_RETRIEVAL_SA }}
       TOKEN_PICKLE: ${{ secrets.TOKEN_PICKLE }}
 
