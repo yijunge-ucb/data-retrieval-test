@@ -6,7 +6,14 @@ on:
       issue_number:
         required: true
         type: number
-       
+      app_id:
+        required: true
+        type: string
+    secrets:
+      PRIVATE_KEY_SECRET:
+        required: true
+
+      
 permissions:
   contents: write
   pull-requests: write
@@ -88,7 +95,19 @@ jobs:
         end_date: ${{ steps.extract_course_info.outputs.end_date }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         
+    - name: output environment variable
+      run: echo "app_id=${{ inputs.app_id }}" 
     
+    - name: Test if secrets PRIVATE_KEY_SECRET are set
+      run: |
+        if [ -z "${{ secrets.PRIVATE_KEY_SECRET }}" ]; then
+          echo "PRIVATE_KEY_SECRET is not set. Exiting..."
+          exit 1
+        else
+          echo "PRIVATE_KEY_SECRET is set."
+        fi
+ 
+
     - name: Authenticate gh CLI
       if: steps.modify-config.outputs.changed == 'true'
       run: echo "${{ secrets.MYPAT }}" | gh auth login --with-token
