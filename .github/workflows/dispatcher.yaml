@@ -25,7 +25,7 @@ jobs:
     uses: ./.github/workflows/add_admin_config.yaml
     with:
       issue_number: ${{ github.event.issue.number }}
-      app_id: ${{ var.APP_ID }}
+      app_id: ${{ vars.APP_ID }}
     secrets:
       PRIVATE_KEY_SECRET: ${{ secrets.PRIVATE_KEY_SECRET }}
       
@@ -34,7 +34,7 @@ jobs:
     uses: ./.github/workflows/remove_admin_config.yaml
     with:
       issue_number: ${{ github.event.issue.number }}
-      app_id: ${{ var.APP_ID }}
+      app_id: ${{ vars.APP_ID }}
     secrets:
       PRIVATE_KEY_SECRET: ${{ secrets.PRIVATE_KEY_SECRET }}
 
@@ -43,7 +43,7 @@ jobs:
     uses: ./.github/workflows/add_memory_config.yaml
     with:
       issue_number: ${{ github.event.issue.number }}
-      app_id: ${{ var.APP_ID }}
+      app_id: ${{ vars.APP_ID }}
     secrets:
       PRIVATE_KEY_SECRET: ${{ secrets.PRIVATE_KEY_SECRET }}
 
@@ -52,7 +52,7 @@ jobs:
     uses: ./.github/workflows/remove_memory_config.yaml
     with:
       issue_number: ${{ github.event.issue.number }}
-      app_id: ${{ var.APP_ID }}
+      app_id: ${{ vars.APP_ID }}
     secrets:
       PRIVATE_KEY_SECRET: ${{ secrets.PRIVATE_KEY_SECRET }}
 
@@ -61,7 +61,7 @@ jobs:
     uses: ./.github/workflows/add_shared_directories.yaml
     with:
       issue_number: ${{ github.event.issue.number }}
-      app_id: ${{ var.APP_ID }}
+      app_id: ${{ vars.APP_ID }}
     secrets:
       PRIVATE_KEY_SECRET: ${{ secrets.PRIVATE_KEY_SECRET }}
   
@@ -70,6 +70,6 @@ jobs:
     uses: ./.github/workflows/remove_shared_directories.yaml
     with:
       issue_number: ${{ github.event.issue.number }}
-      app_id: ${{ var.APP_ID }}
+      app_id: ${{ vars.APP_ID }}
     secrets:
       PRIVATE_KEY_SECRET: ${{ secrets.PRIVATE_KEY_SECRET }}
