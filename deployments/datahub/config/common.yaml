@@ -58,6 +58,17 @@ jupyterhub:
         groups:
           - course::1541622::enrollment_type::teacher
           - course::1541622::enrollment_type::ta
+      course-staff-0000000:
+        ## Course: Test Bcourses ID: 0000000 End Date: 08/01/2025 
+        ## See issue https://github.com/berkeley-dsep-infra/datahub/issues/75 for more details.
+        description: Enable course staff to view and access servers.
+        scopes:
+          - admin-ui
+          - list:users!group=course::0000000
+          - admin:servers!group=course::0000000
+          - access:servers!group=course::0000000
+        groups:
+          - course::0000000::group::Admins
 
 
     nodeSelector:
